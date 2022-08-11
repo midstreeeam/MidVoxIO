@@ -3,7 +3,7 @@ from struct import unpack_from, calcsize
 import numpy as np
 
 from .config import *
-from .exceptions import ParsingException
+from .exceptions import AssigningException, ParsingException
 
 
 class Chunk():
@@ -30,6 +30,7 @@ class Chunk():
                 self.palette.append(unpack_from(RGBA_FMT, content, 4*i))
         elif id == b'MATL':
             _id, _type, _weight, _rough, _spec, _ior, _att, _flux = unpack_from('is6f', content)
+            # print(_id, _type, _weight, _rough, _spec, _ior, _att, _flux)
         elif id == b'nTRN':
             pass
         elif id == b'rOBJ':
@@ -52,12 +53,12 @@ class Chunk():
 class Vox():
 
     def __init__(self,chunks):
-        self.palette = None
+        self._palette = None
         self.size = None
         self.voxels = None
         for chunk in chunks:
             if chunk.id==b'RGBA':
-                self.palette = chunk.palette
+                self._palette = chunk.palette
             if chunk.id==b'SIZE':
                 self.size = chunk.size
             if chunk.id==b'XYZI':
@@ -75,5 +76,18 @@ class Vox():
             c=i[3]
             arr[x,y,z]=color[c-1]/255
         return arr
+    
+
+    @property
+    def palette(self):
+        return self._palette
+
+    @palette.setter
+    def palette(self, val:list):
+        if type(val)==list and np.array(val).shape==(255,4):
+            self._palette = val
+            self.default_palette = False
+        else:
+            raise AssigningException('The value seems not a palette.')
 
     pass
