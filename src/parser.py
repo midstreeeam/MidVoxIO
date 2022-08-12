@@ -3,7 +3,7 @@ import logging
 
 from .config import *
 from .exceptions import ParsingException
-from .models import Chunk,Vox
+from .vox import Chunk,Vox
 
 log = logging.getLogger(__name__)
 

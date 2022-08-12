@@ -6,14 +6,14 @@ from src.parser import Parser
 class Voxio():
 
     @staticmethod
-    def vox_to_arr(fname):
+    def vox_to_arr(fname,vox_index=0):
         vox=Parser(fname).parse()
-        return vox.to_list()
+        return vox.to_list(vox_index)
     
     @staticmethod
-    def viz_vox(fname):
-        arr=Voxio.vox_to_arr(fname)
-        Voxio.plot_3d(arr)
+    def viz_vox(fname,vox_index=0):
+        arr=Voxio.vox_to_arr(fname,vox_index)
+        Plotio.plot_3d(arr)
 
     @staticmethod
     def show_chunks(fname):
@@ -21,10 +21,16 @@ class Voxio():
         print([i.name for i in vox.chunks])
     
     @staticmethod
-    def get_rendering_attributes(fname):
+    def show_rendering_attributes(fname):
         vox=Parser(fname).parse()
         for obj in vox.robjs:
             print(obj)
+    
+    @staticmethod
+    def get_vox(fname):
+        return Parser(fname).parse()
+
+class Plotio():
 
     @staticmethod
     def plot_3d(arr):

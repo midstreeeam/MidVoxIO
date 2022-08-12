@@ -1,11 +1,104 @@
-import logging
 from struct import unpack_from, calcsize
-import numpy as np
 
-from .config import *
-from .exceptions import AssigningException, ParsingException
+class NGPR():
+    '''
+    Group Node Chunk : "nGRP" 
+    int32	: node id
+    DICT	: node attributes
+    int32 	: num of children nodes
+
+    // for each child
+    {
+    int32	: child node id
+    }xN
+    '''
+    def __init__(self,node_id,dic,num,child_lst):
+        self.node_id=node_id
+        self.node_attr=dic
+        self.children_num=num
+        self.children_ids=child_lst
+        pass
+class Material():
+    '''
+    Material Chunk : "MATL"
+        int32	: material id
+        DICT	: material properties
+            (_type : str) _diffuse, _metal, _glass, _emit
+            (_weight : float) range 0 ~ 1
+            (_rough : float)
+            (_spec : float)
+            (_ior : float)
+            (_att : float)
+            (_flux : float)
+            (_plastic)
+    '''
+    def __init__(self,id,dic):
+        self.id=id
+        self.dic=dic
+        pass
+
+class Camera():
+    '''
+    Render Camera Chunk : "rCAM"
+        int32	: camera id
+        DICT	: camera attribute
+            (_mode : string)
+            (_focus : vec(3))
+            (_angle : vec(3))
+            (_radius : int)
+            (_frustum : float)
+            (_fov : int)
+    '''
+    def __init__(self,id,dic):
+        self.id=id
+        self.dic=dic
+        pass
+
+class Layer():
+    '''
+    Layer Chunk : "LAYR"
+        int32	: layer id
+        DICT	: layer attribute
+            (_name : string)
+            (_hidden : 0/1)
+        int32	: reserved id, must be -1
+    '''
+    def __init__(self,id,dic,rev_id):
+        self.id=id
+        self.dic=dic
+        self.rev_id=rev_id
+
+class Note():
+    '''
+    Palette Note Chunk : "NOTE"
+        int32	: num of color names
+
+        // for each name
+        {
+        STRING	: color name
+        }xN
+    '''
+    def __init__(self,num,color_names):
+        self.num=num
+        self.color_names=color_names
+
+class ROBJ():
+    '''
+    Render Objects Chunk : "rOBJ"
+        DICT	: rendering attributes
+    '''
+    def __init__(self,dic):
+        self.dic=dic
+    
+    def __str__(self):
+        return str(self.dic)
 
 class Bstring():
+    '''
+    STRING type
+        int32   : buffer size (in bytes)
+        int8xN	: buffer (without the ending "\0")
+    '''
     def __init__(self,bytes,offset=0):
         self.string=None
         self.content=bytes
@@ -19,6 +112,15 @@ class Bstring():
         self.string=str(unpack_from(fmt,self.content,self.offset)[0])[2:-1]
 
 class Bdict():
+    '''
+    DICT type
+        int32	: num of key-value pairs
+        // for each key-value pair
+        {
+        STRING	: key
+        STRING	: value
+        }xN
+    '''
     def __init__(self,bytes,offset=0):
         self.dic={}
         self.content=bytes
@@ -35,104 +137,3 @@ class Bdict():
             value=bs2.string
             self.offset+=bs2.byte_length
             self.dic[key]=value
-
-
-class Chunk():
-    
-    def __init__(self,id,content=None,children=None):
-        self.id = id
-        self.name = str(id)[2:-1]
-        self.content = content or b''
-        self.children = children or []
-        
-        if id == b'MAIN':
-            if len(self.content): raise ParsingException('Empty main chunk')
-        elif id == b'PACK':
-            logging.error('Detect Pack chunk which is not supportted in current version')
-        elif id == b'SIZE':
-            self.size=unpack_from(SIZE_FMT,self.content,0)
-        elif id == b'XYZI':
-            n = int(unpack_from(XYZI_FMT_1,self.content,0)[0])
-            self.voxels = []
-            for i in range(n):
-                self.voxels.append(unpack_from(XYZI_FMT_2, content, 4+4*i))
-        elif id == b'RGBA':
-            self.palette=[]
-            for i in range(255):
-                self.palette.append(unpack_from(RGBA_FMT, content, 4*i))
-        elif id == b'MATL':
-            _id = unpack_from('i', content)
-            _dict = Bdict(content,4).dic
-            self.material=_dict
-        elif id == b'nTRN':
-            pass
-        elif id == b'rOBJ':
-            self.robj = Bdict(content).dic
-        elif id == b'nGRP':
-            pass
-        elif id == b'nSHP':
-            pass
-        elif id == b'LAYR':
-            pass
-        elif id == b'NOTE':
-            pass
-        elif id == b'IMAP':
-            pass
-
-
-        else:
-            raise ParsingException('Unknown chunk type: %s'%self.id)
-
-class Vox():
-
-    def __init__(self,chunks):
-        self.chunks=chunks
-        self._palette = None
-        self.size = None
-        self.voxels = None
-        self.materials = []
-        self.robjs=[]
-        self._parse_chunk()
-
-        pass
-
-    def _parse_chunk(self):
-        for chunk in self.chunks:
-            if chunk.id==b'RGBA':
-                self._palette = chunk.palette
-            if chunk.id==b'SIZE':
-                self.size = chunk.size
-            if chunk.id==b'XYZI':
-                self.voxels = chunk.voxels
-            if chunk.id==b'MATL':
-                self.materials.append(chunk.material)
-            if chunk.id==b'rOBJ':
-                self.robjs.append(chunk.robj)
-        pass
-
-    def to_list(self):
-        l,w,h=self.size
-        arr=np.zeros((l,w,h,4))
-        color=np.array(self.palette)
-        for i in self.voxels:
-            x=i[0]
-            y=i[1]
-            z=i[2]
-            c=i[3]
-            arr[x,y,z]=color[c-1]/255
-        return arr
-    
-
-    @property
-    def palette(self):
-        return self._palette
-
-    @palette.setter
-    def palette(self, val:list):
-        if type(val)==list and np.array(val).shape==(255,4):
-            self._palette = val
-            self.default_palette = False
-        else:
-            raise AssigningException('The value seems not a palette.')
-
-    pass
