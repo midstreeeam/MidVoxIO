@@ -41,6 +41,7 @@ class Chunk():
     
     def __init__(self,id,content=None,children=None):
         self.id = id
+        self.name = str(id)[2:-1]
         self.content = content or b''
         self.children = children or []
         
@@ -66,7 +67,7 @@ class Chunk():
         elif id == b'nTRN':
             pass
         elif id == b'rOBJ':
-            pass
+            self.robj = Bdict(content).dic
         elif id == b'nGRP':
             pass
         elif id == b'nSHP':
@@ -90,8 +91,8 @@ class Vox():
         self.size = None
         self.voxels = None
         self.materials = []
+        self.robjs=[]
         self._parse_chunk()
-        print(self.materials)
 
         pass
 
@@ -105,6 +106,8 @@ class Vox():
                 self.voxels = chunk.voxels
             if chunk.id==b'MATL':
                 self.materials.append(chunk.material)
+            if chunk.id==b'rOBJ':
+                self.robjs.append(chunk.robj)
         pass
 
     def to_list(self):

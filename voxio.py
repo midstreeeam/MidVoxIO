@@ -16,6 +16,17 @@ class Voxio():
         Voxio.plot_3d(arr)
 
     @staticmethod
+    def show_chunks(fname):
+        vox=Parser(fname).parse()
+        print([i.name for i in vox.chunks])
+    
+    @staticmethod
+    def get_rendering_attributes(fname):
+        vox=Parser(fname).parse()
+        for obj in vox.robjs:
+            print(obj)
+
+    @staticmethod
     def plot_3d(arr):
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
