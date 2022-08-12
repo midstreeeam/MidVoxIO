@@ -5,6 +5,37 @@ import numpy as np
 from .config import *
 from .exceptions import AssigningException, ParsingException
 
+class Bstring():
+    def __init__(self,bytes,offset=0):
+        self.string=None
+        self.content=bytes
+        self.length=int(unpack_from('i',bytes,offset)[0])
+        self.offset=offset+4
+        self._unpack()
+        self.byte_length=calcsize('i')+self.length*calcsize('s')
+    
+    def _unpack(self):
+        fmt=str(self.length)+'s'
+        self.string=str(unpack_from(fmt,self.content,self.offset)[0])[2:-1]
+
+class Bdict():
+    def __init__(self,bytes,offset=0):
+        self.dic={}
+        self.content=bytes
+        self.length=int(unpack_from('i', bytes,offset)[0])
+        self.offset=offset+4
+        self._unpack()
+        
+    def _unpack(self):
+        for i in range(self.length):
+            bs1=Bstring(self.content,self.offset)
+            key=bs1.string
+            self.offset+=bs1.byte_length
+            bs2=Bstring(self.content,self.offset)
+            value=bs2.string
+            self.offset+=bs2.byte_length
+            self.dic[key]=value
+
 
 class Chunk():
     
@@ -29,8 +60,9 @@ class Chunk():
             for i in range(255):
                 self.palette.append(unpack_from(RGBA_FMT, content, 4*i))
         elif id == b'MATL':
-            _id, _type, _weight, _rough, _spec, _ior, _att, _flux = unpack_from('is6f', content)
-            # print(_id, _type, _weight, _rough, _spec, _ior, _att, _flux)
+            _id = unpack_from('i', content)
+            _dict = Bdict(content,4).dic
+            self.material=_dict
         elif id == b'nTRN':
             pass
         elif id == b'rOBJ':
@@ -53,16 +85,26 @@ class Chunk():
 class Vox():
 
     def __init__(self,chunks):
+        self.chunks=chunks
         self._palette = None
         self.size = None
         self.voxels = None
-        for chunk in chunks:
+        self.materials = []
+        self._parse_chunk()
+        print(self.materials)
+
+        pass
+
+    def _parse_chunk(self):
+        for chunk in self.chunks:
             if chunk.id==b'RGBA':
                 self._palette = chunk.palette
             if chunk.id==b'SIZE':
                 self.size = chunk.size
             if chunk.id==b'XYZI':
                 self.voxels = chunk.voxels
+            if chunk.id==b'MATL':
+                self.materials.append(chunk.material)
         pass
 
     def to_list(self):
