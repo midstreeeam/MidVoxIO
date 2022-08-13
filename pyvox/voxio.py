@@ -1,7 +1,7 @@
 import matplotlib.pylab as plt
 import numpy as np
 
-from src.parser import Parser
+from .parser import Parser
 
 class Voxio():
 
