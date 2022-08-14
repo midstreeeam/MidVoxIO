@@ -12,7 +12,7 @@ use `vox_to_arr()` to parse .vox file into numpy array.
 ```Python
 from voxio import Voxio
 
-print(Voxio.vox_to_arr('vox/99/3x3x3').shape)
+print(Voxio.vox_to_arr('vox/99/3x3x3.vox').shape)
 ```
 result:
 ```Python
