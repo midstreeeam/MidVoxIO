@@ -26,7 +26,7 @@ use `viz_vox()` to parse .vox file into numpy array.
 ```Python
 from voxio import Voxio
 
-Voxio.viz_vox('vox/99/3x3x3')
+Voxio.viz_vox('vox/99/3x3x3.vox')
 ```
 then, the python will give you a 3d plot.
 <img src="/img/3x3x3.jpg" width="30%">
