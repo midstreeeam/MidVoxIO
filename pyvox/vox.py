@@ -21,7 +21,7 @@ class Chunk():
             if len(self.content):
                 raise ParsingException('Empty main chunk')
         elif self.id == b'PACK':
-            logging.error('Detect Pack chunk which is not supportted in current version')
+            print('Detect Pack chunk which is not supportted in current version, skip now')
         elif self.id == b'SIZE':
             self.size=unpack_from(SIZE_FMT,self.content,0)
         elif self.id == b'XYZI':

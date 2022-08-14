@@ -6,6 +6,13 @@ from .parser import Parser
 class Voxio():
 
     @staticmethod
+    def _get_attr(attr_lst):
+        ret=[]
+        for i in attr_lst:
+            ret.append(str(i))
+        return ret
+
+    @staticmethod
     def vox_to_arr(fname,vox_index=0):
         vox=Parser(fname).parse()
         return vox.to_list(vox_index)
@@ -21,10 +28,19 @@ class Voxio():
         print([i.name for i in vox.chunks])
     
     @staticmethod
-    def show_rendering_attributes(fname):
+    def get_rendering_attributes(fname):
         vox=Parser(fname).parse()
-        for obj in vox.robjs:
-            print(obj)
+        return Voxio._get_attr(vox.robjs)
+    
+    @staticmethod
+    def get_materials(fname):
+        vox=Parser(fname).parse()
+        return Voxio._get_attr(vox.materials)
+    
+    @staticmethod
+    def get_cameras(fname):
+        vox=Parser(fname).parse()
+        return Voxio._get_attr(vox.cameras)
     
     @staticmethod
     def get_vox(fname):

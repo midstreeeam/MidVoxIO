@@ -37,6 +37,11 @@ class Material():
         self.dic=dic
         pass
 
+    def __str__(self):
+        return str({'id':self.id,
+                'properties':self.dic
+                })
+
 class Camera():
     '''
     Render Camera Chunk : "rCAM"
@@ -53,6 +58,11 @@ class Camera():
         self.id=id
         self.dic=dic
         pass
+
+    def __str__(self):
+        return str({'id':self.id,
+                'attributes':self.dic
+                })
 
 class Layer():
     '''
