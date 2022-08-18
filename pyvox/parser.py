@@ -1,11 +1,12 @@
 from struct import unpack_from, calcsize
 import logging
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+
 
 from .config import *
 from .exceptions import ParsingException
 from .vox import Chunk,Vox
-
-log = logging.getLogger(__name__)
 
 class Parser():
 
@@ -24,9 +25,8 @@ class Parser():
     def _parseChunk(self):
     
         _id, N, M = self.unpack(CHUNK_FMT)
-        # print(_id, N, M)
 
-        log.debug("Found chunk id %s / len %s / children %s", _id, N, M)
+        logging.info("Found chunk id %s / len %s / children %s", _id, N, M)
 
         content = self.unpack('%ds'%N)[0]
 
