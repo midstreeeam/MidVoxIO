@@ -16,7 +16,9 @@ from pyvox.writer import Writer
 v=Voxio.vox_to_arr('vox/98/cat.vox')
 path='palette/cat.png'
 
-t=Writer(v,path)
-t.write('test.vox')
+Voxio.write_list_to_vox(v,'test.vox',path)
+
+# t=Writer(v,palette_path=path)
+# t.write('test.vox')
 
 

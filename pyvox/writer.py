@@ -6,9 +6,12 @@ from .models import SIZE, XYZI, RGBA, BaseChunk
 
 class Writer():
 
-    def __init__(self,vox_arr:np.ndarray,palette_path):
+    def __init__(self,vox_arr:np.ndarray,palette_path=None,palette_arr=None):
         self.vox=np.array(vox_arr*255,dtype=int)
-        self.rgba=RGBA(palette_path)
+        if palette_path:
+            self.rgba=RGBA(img_path=palette_path)
+        if palette_arr:
+            self.rgba=RGBA(palette_arr=palette_arr)
         self.xyzi=XYZI(self.mapping())
         self.size=SIZE(vox_arr.shape)
         self.chunks=[self.size,self.xyzi,self.rgba]

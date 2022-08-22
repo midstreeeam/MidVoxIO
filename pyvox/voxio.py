@@ -1,6 +1,7 @@
 import matplotlib.pylab as plt
 import numpy as np
 
+from .writer import Writer
 from .parser import Parser
 
 class Voxio():
@@ -45,6 +46,14 @@ class Voxio():
     @staticmethod
     def get_vox(fname):
         return Parser(fname).parse()
+
+    @staticmethod
+    def write_list_to_vox(arr,vox_fname,palette_path=None,palette_arr=None):
+        if palette_arr:
+            t=Writer(arr,palette_arr=palette_arr)
+        if palette_path:
+            t=Writer(arr,palette_path=palette_path)
+        t.write(vox_fname)
 
 class Plotio():
 
