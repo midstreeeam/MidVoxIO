@@ -10,10 +10,12 @@ from .vox import Chunk,Vox
 
 class Parser():
 
-    def __init__(self,fname):
+    def __init__(self,fname=None,bcontent=None):
         with open(fname, 'rb') as f:
             self.content = f.read()
         
+        if bcontent:
+            self.content=bcontent
         self.offset=0
         pass
 
@@ -25,8 +27,6 @@ class Parser():
     def _parseChunk(self):
     
         _id, N, M = self.unpack(CHUNK_FMT)
-
-        logging.info("Found chunk id %s / len %s / children %s", _id, N, M)
 
         content = self.unpack('%ds'%N)[0]
 

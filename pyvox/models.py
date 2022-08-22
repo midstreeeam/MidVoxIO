@@ -1,4 +1,87 @@
-from struct import unpack_from, calcsize
+
+from struct import unpack_from, calcsize, pack
+
+import numpy as np
+from PIL import Image
+
+class BaseChunk():
+    def to_b():
+        pass
+    pass
+
+class XYZI(BaseChunk):
+    '''
+    Chunk id 'XYZI' : model voxels, paired with the SIZE chunk
+    -------------------------------------------------------------------------------
+    # Bytes  | Type       | Value
+    -------------------------------------------------------------------------------
+    4        | int        | numVoxels (N)
+    4 x N    | int        | (x, y, z, colorIndex) : 1 byte for each component
+    -------------------------------------------------------------------------------
+    '''
+    id=b'XYZI'
+    def __init__(self,xyzi_arr):
+        self.xyzi=xyzi_arr
+        pass
+    
+    def to_b(self):
+        length=len(self.xyzi)
+        bstr=pack('i',length)
+        for i in self.xyzi:
+            bstr+=pack('4B',i[0],i[1],i[2],i[3])
+        return bstr
+
+class SIZE(BaseChunk):
+    '''
+     Chunk id 'SIZE' : model size
+    -------------------------------------------------------------------------------
+    # Bytes  | Type       | Value
+    -------------------------------------------------------------------------------
+    4        | int        | size x
+    4        | int        | size y
+    4        | int        | size z : gravity direction
+    -------------------------------------------------------------------------------
+    '''
+    id=b'SIZE'
+    def __init__(self,shape):
+        self.size=shape[:-1]
+    def to_b(self):
+        return pack('3i',self.size[0],self.size[1],self.size[2])
+
+class RGBA(BaseChunk):
+    '''
+    Chunk id 'RGBA' : palette
+    -------------------------------------------------------------------------------
+    # Bytes  | Type       | Value
+    -------------------------------------------------------------------------------
+    4 x 256  | int        | (R, G, B, A) : 1 byte for each component
+                        | * <NOTICE>
+                        | * color [0-254] are mapped to palette index [1-255], e.g : 
+                        | 
+                        | for ( int i = 0; i <= 254; i++ ) {
+                        |     palette[i + 1] = ReadRGBA(); 
+                        | }
+    -------------------------------------------------------------------------------
+    '''
+    id=b'RGBA'
+    def __init__(self,img_path=None,palette_arr=None):
+        if palette_arr:
+            self.palette_arr=palette_arr
+        else:
+            self.palette_arr=self._get_palette_arr_from_img(img_path)
+        pass
+
+    def _get_palette_arr_from_img(self,img_path):
+        img=Image.open(img_path)
+        color=np.array(img)
+        return color[0]
+    
+    def to_b(self):
+        bstr=b''
+        for i in self.palette_arr:
+            bstr+=pack('4B',i[0],i[1],i[2],i[3])
+        return bstr
+
 
 class NGPR():
     '''
@@ -18,6 +101,7 @@ class NGPR():
         self.children_num=num
         self.children_ids=child_lst
         pass
+
 class Material():
     '''
     Material Chunk : "MATL"

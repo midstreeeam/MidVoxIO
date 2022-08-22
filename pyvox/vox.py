@@ -144,7 +144,7 @@ class Vox():
 
     @palette.setter
     def palette(self, val:list):
-        if type(val)==list and np.array(val).shape==(255,4):
+        if isinstance(val,list) and np.array(val).shape==(255,4):
             self._palette = val
             self.default_palette = False
         else:
