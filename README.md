@@ -5,6 +5,7 @@ The python IO for [magical voxel](https://ephtracy.github.io/)'s [.vox files](ht
 ## Install
 - clone the repo
 - add the repo to path
+- Install numpy and matplotlib if you haven't
 
 ## Usage
 #### vox_to_arr()
@@ -23,7 +24,7 @@ result:
 
 #### viz_vox()
 
-use `viz_vox()` to parse .vox file into numpy array.
+use `viz_vox()` to visualize your .vox file. Using `matplotlib` to plot the file.
 ```Python
 from voxio import Voxio
 
