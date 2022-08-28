@@ -59,11 +59,15 @@ from voxio import Voxio
 arr=[] # define your python list that represent the 3d model here
 palette=[] # define your palette that relate to your model here
 
-write_list_to_vox(arr,'fname.vox',palette_arr=palette) # then, you save the 'fname.vox'
+# you can use plotio to viz your arr before you save it to vox
+from voxio import Plotio
+Plotio.plot_3d(arr) # visualize your arr
+
+Voxio.write_list_to_vox(arr,'fname.vox',palette_arr=palette) # then, you save the 'fname.vox'
 
 # you can also use png palette
 palette_path='palette.png'
-write_list_tov_vox(arr,'fname.vox',palette_path) # then, you save the 'fname.vox'
+Voxio.write_list_tov_vox(arr,'fname.vox',palette_path) # then, you save the 'fname.vox'
 ```
 
 
