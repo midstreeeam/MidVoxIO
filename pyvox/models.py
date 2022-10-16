@@ -1,8 +1,10 @@
-
+from pprint import pformat
 from struct import unpack_from, calcsize, pack
 
 import numpy as np
 from PIL import Image
+
+from .exceptions import DumpingException
 
 class BaseChunk():
     def to_b():
@@ -83,7 +85,50 @@ class RGBA(BaseChunk):
         return bstr
 
 
-class NGPR():
+class nTRN():
+    '''
+    Transform Node Chunk : "nTRN"
+
+    int32	: node id
+    DICT	: node attributes
+        (_name : string)
+        (_hidden : 0/1)
+    int32 	: child node id
+    int32 	: reserved id (must be -1)
+    int32	: layer id
+    int32	: num of frames (must be greater than 0)
+
+    // for each frame
+    {
+    DICT	: frame attributes
+        (_r : int8)    ROTATION, see (c)
+        (_t : int32x3) translation
+        (_f : int32)   frame index, start from 0 
+    }xN
+    '''
+    id=b'nTRN'
+    def __init__(self,node_id,node_attributes,
+    child_node_id,reversed_id,layer_id,frames):
+        self.node_id=node_id
+        self.node_attributes=node_attributes
+        self.child_node_id=child_node_id
+        self.reversed_id=reversed_id
+        self.layer_id=layer_id
+        self.frames=frames
+    
+    def to_b():
+        raise DumpingException("nTRN's to_be function not implemented yet")
+    
+    def __repr__(self):
+        ret=f'''
+====nTRN====
+node_id:{self.node_id}
+frames:{format(self.frames)}
+child_node_id:{self.child_node_id}
+'''
+        return ret
+
+class NGRP():
     '''
     Group Node Chunk : "nGRP" 
     int32	: node id
@@ -101,6 +146,41 @@ class NGPR():
         self.children_num=num
         self.children_ids=child_lst
         pass
+    def __repr__(self):
+        ret=f'''
+====nGPR====
+node_id:{self.node_id}
+children_ids:{self.children_ids}
+'''
+        return ret
+
+
+class nSHP():
+    '''
+    Shape Node Chunk : "nSHP" 
+
+    int32	: node id
+    DICT	: node attributes
+    int32 	: num of models (must be greater than 0)
+
+    // for each model
+    {
+    int32	: model id
+    DICT	: model attributes : reserved
+        (_f : int32)   frame index, start from 0
+    }xN
+    '''
+    def __init__(self,node_id,dic,models):
+        self.node_id=node_id
+        self.node_attr=dic
+        self.models=models
+    def __repr__(self):
+        ret=f'''
+====nSHP====
+node_id:{self.node_id}
+models:{pformat(self.models)}
+'''
+        return ret
 
 class Material():
     '''
@@ -223,7 +303,7 @@ class Bdict():
         self._unpack()
         
     def _unpack(self):
-        for i in range(self.length):
+        for _ in range(self.length):
             bs1=Bstring(self.content,self.offset)
             key=bs1.string
             self.offset+=bs1.byte_length
