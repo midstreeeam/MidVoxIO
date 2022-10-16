@@ -48,7 +48,7 @@ class Chunk():
             self.material=Material(_id,_dict)
 
         elif self.id == b'nTRN':
-            _id = unpack_from('i', self.content)
+            _id = int(unpack_from('i', self.content)[0])
             frames = []
             bdict = Bdict(self.content,4)
             (c_id,r_id,l_id,frames_num)=unpack_from('iiii', self.content,bdict.offset)
@@ -62,18 +62,18 @@ class Chunk():
             self.robj = ROBJ(Bdict(self.content).dic)
             
         elif self.id == b'nGRP':
-            _node_id = unpack_from('i', self.content)
+            _node_id = int(unpack_from('i', self.content)[0])
             bdict=Bdict(self.content,4)
             _node_attr = bdict.dic
             children_num = int(unpack_from('i', self.content,bdict.offset)[0])
             child_ids = []
             offset=bdict.offset+4
             for i in range(children_num):
-                child_ids.append(unpack_from('i',self.content,offset+4*i))
+                child_ids.append(int(unpack_from('i',self.content,offset+4*i)[0]))
             self.ngrp=NGRP(_node_id,_node_attr,children_num,child_ids)
 
         elif self.id == b'nSHP':
-            _node_id = unpack_from('i', self.content)
+            _node_id = int(unpack_from('i', self.content)[0])
             bdict=Bdict(self.content,4)
             _node_attr = bdict.dic
             model_num = int(unpack_from('i', self.content,bdict.offset)[0])
@@ -81,7 +81,7 @@ class Chunk():
             offset=bdict.offset+4
             for i in range(model_num):
                 mod={}
-                mod['_id']=unpack_from('i',self.content,offset)
+                mod['_id']=int(unpack_from('i',self.content,offset)[0])
                 _bdict=Bdict(self.content,offset+4)
                 mod['_attr_dic']=_bdict.dic
                 offset=_bdict.offset
@@ -133,9 +133,55 @@ class Vox():
         self.cameras=[]
         self.palette_notes=[]
         self._parse_chunk()
-
+        self._trans(self._get_transform())
         pass
 
+    def _trans(self,transforms):
+
+        if len(transforms)!=len(self.voxels):
+            print(f'_t in nTRN not match models, transform not applied')
+            return
+
+        # calcualte the size of the combined moduel
+        tran=[]
+        for i in transforms:
+            tran.append(i[0])
+        tran=np.array(tran).transpose()
+        sizes=np.array(self.sizes).transpose()
+        x=max(sizes[0])+max(tran[0].tolist())-min(tran[0].tolist())
+        y=max(sizes[1])+max(tran[1].tolist())-min(tran[1].tolist())
+        z=max(sizes[2])+max(tran[2].tolist())-min(tran[2].tolist())
+        combined_size=(x,y,z)
+        self.sizes.append(combined_size)
+
+        # combine models
+        combined_voxel=[]
+        for trans,voxel in zip(transforms,self.voxels):
+            for sv in voxel:
+                combined_voxel.append((
+                    sv[0]+trans[0][0]-min(tran[0].tolist()),
+                    sv[1]+trans[0][1]-min(tran[1].tolist()),
+                    sv[2]+trans[0][2]-min(tran[2].tolist()),
+                    sv[3]))
+        self.voxels.append(combined_voxel)
+
+
+    def _get_transform(self,frame_index=0):
+        '''
+        the function returns ([x,y,z],model_id)
+        '''
+        trn:nTRN
+        shp:nSHP
+        trlinks=[]
+        for trn in self.ntrns:
+            for shp in self.nshps:
+                if trn.child_node_id==shp.node_id:
+                    for model in shp.models:
+                        trlinks.append((
+                            [int(i) for i in trn.frames[frame_index]['_t'].split()],
+                            model['_id']))
+        return trlinks
+    
     def _parse_chunk(self):
         for chunk in self.chunks:
             chunk:Chunk

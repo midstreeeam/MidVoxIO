@@ -6,12 +6,7 @@ from PIL import Image
 
 from .exceptions import DumpingException
 
-class BaseChunk():
-    def to_b():
-        pass
-    pass
-
-class XYZI(BaseChunk):
+class XYZI():
     '''
     Chunk id 'XYZI' : model voxels, paired with the SIZE chunk
     -------------------------------------------------------------------------------
@@ -33,7 +28,7 @@ class XYZI(BaseChunk):
             bstr+=pack('4B',i[0],i[1],i[2],i[3])
         return bstr
 
-class SIZE(BaseChunk):
+class SIZE():
     '''
      Chunk id 'SIZE' : model size
     -------------------------------------------------------------------------------
@@ -50,7 +45,7 @@ class SIZE(BaseChunk):
     def to_b(self):
         return pack('3i',self.size[0],self.size[1],self.size[2])
 
-class RGBA(BaseChunk):
+class RGBA():
     '''
     Chunk id 'RGBA' : palette
     -------------------------------------------------------------------------------
