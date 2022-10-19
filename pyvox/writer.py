@@ -2,7 +2,7 @@ from struct import pack
 
 import numpy as np
 
-from .models import SIZE, XYZI, RGBA, BaseChunk
+from .models import SIZE, XYZI, RGBA
 
 class Writer():
 
@@ -44,7 +44,6 @@ class Writer():
         bstr=pack('4si', b'VOX ', 150)
         bmain_temp=b''
         for chunk in self.chunks:
-            chunk:BaseChunk
             b_content=chunk.to_b()
             bmain_temp+=pack('4sii',chunk.id,len(b_content),0)
             bmain_temp+=b_content
