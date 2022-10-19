@@ -1,5 +1,5 @@
 # PyVox
-The python IO for [magical voxel](https://ephtracy.github.io/)'s [.vox files](https://github.com/ephtracy/voxel-model).
+The python IO for [magical voxel](https://ephtracy.github.io/)'s [.vox format](https://github.com/ephtracy/voxel-model).
 
 
 ## Install
