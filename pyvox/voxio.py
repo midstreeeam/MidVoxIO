@@ -1,67 +1,92 @@
+'''
+User API
+'''
 import matplotlib.pylab as plt
 import numpy as np
 
 from .writer import Writer
 from .parser import Parser
+from .vox import Vox
 
-class Voxio():
 
-    @staticmethod
-    def _get_attr(attr_lst):
-        ret=[]
-        for i in attr_lst:
-            ret.append(str(i))
-        return ret
+def _get_attr(attr_lst):
+    return [str(i) for i in attr_lst]
 
-    @staticmethod
-    def vox_to_arr(fname,vox_index=0):
-        vox=Parser(fname).parse()
-        return vox.to_list(vox_index)
-    
-    @staticmethod
-    def viz_vox(fname,vox_index=0):
-        arr=Voxio.vox_to_arr(fname,vox_index)
-        Plotio.plot_3d(arr)
+def vox_to_arr(fname:str,vox_index=0):
+    '''
+    Return an array of the vox file.
+    fname: path to vox file
+    vox_index: which model to show if there is multiple models
+                index -1 means show all the model to gether
+    '''
+    vox=Parser(fname).parse()
+    return vox.to_list(vox_index)
 
-    @staticmethod
-    def show_chunks(fname):
-        vox=Parser(fname).parse()
-        print([i.name for i in vox.chunks])
-    
-    @staticmethod
-    def get_rendering_attributes(fname):
-        vox=Parser(fname).parse()
-        return Voxio._get_attr(vox.robjs)
-    
-    @staticmethod
-    def get_materials(fname):
-        vox=Parser(fname).parse()
-        return Voxio._get_attr(vox.materials)
-    
-    @staticmethod
-    def get_cameras(fname):
-        vox=Parser(fname).parse()
-        return Voxio._get_attr(vox.cameras)
-    
-    @staticmethod
-    def get_vox(fname):
-        return Parser(fname).parse()
+def viz_vox(fname:str,vox_index=0):
+    '''
+    Viz vox file by using matplotlib
+    fname: path to vox file
+    vox_index: which model to show if there is multiple models
+                index -1 means show all the model to gether
+    '''
+    arr=vox_to_arr(fname,vox_index)
+    plot_3d(arr)
 
-    @staticmethod
-    def write_list_to_vox(arr,vox_fname,palette_path=None,palette_arr=None):
-        if palette_arr:
-            t=Writer(arr,palette_arr=palette_arr)
-        if palette_path:
-            t=Writer(arr,palette_path=palette_path)
-        t.write(vox_fname)
+def show_chunks(fname:str):
+    '''
+    print chunk names of all chuncks in the vox file
+    '''
+    vox=Parser(fname).parse()
+    print([i.name for i in vox.chunks])
 
-class Plotio():
+def get_rendering_attributes(fname:str):
+    '''
+    return all redering attributes of a vox file
+    '''
+    vox=Parser(fname).parse()
+    return _get_attr(vox.robjs)
 
-    @staticmethod
-    def plot_3d(arr):
-        fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
-        u = np.moveaxis(arr, (0, 1), (0, 1))
-        m = ax.voxels((u[:, :, :, 3] > 0.1), facecolors=np.clip(u[:, :, :, :4], 0, 1))
-        plt.show()
-        plt.close()
+def get_materials(fname:str):
+    '''
+    return all material attributes of a vox file
+    '''
+    vox=Parser(fname).parse()
+    return _get_attr(vox.materials)
+
+def get_cameras(fname:str):
+    '''
+    return all cameras attributes of a vox file
+    '''
+    vox=Parser(fname).parse()
+    return _get_attr(vox.cameras)
+
+def get_vox(fname:str) -> Vox:
+    '''
+    return a Vox class of the vox file
+    '''
+    return Parser(fname).parse()
+
+def write_list_to_vox(arr,vox_fname:str,palette_path=None,palette_arr=None):
+    '''
+    dump and write an arr into vox file
+    arr: python list or numpy array that contains voxel information
+    vox_fname: the name of created vox file
+    palette_path: if you want to use your own palette
+    palette_arr: if you want to use your own palette
+    '''
+    if palette_arr:
+        t=Writer(arr,palette_arr=palette_arr)
+    if palette_path:
+        t=Writer(arr,palette_path=palette_path)
+    t.write(vox_fname)
+
+def plot_3d(arr):
+    '''
+    plot vox array
+    '''
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    u = np.moveaxis(arr, (0, 1), (0, 1))
+    m = ax.voxels((u[:, :, :, 3] > 0.1), facecolors=np.clip(u[:, :, :, :4], 0, 1))
+    plt.show()
+    plt.close()

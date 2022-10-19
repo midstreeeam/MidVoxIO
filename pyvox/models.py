@@ -13,7 +13,7 @@ class XYZI(BaseChunk):
     '''
     Chunk id 'XYZI' : model voxels, paired with the SIZE chunk
     -------------------------------------------------------------------------------
-    # Bytes  | Type       | Value
+    Bytes  | Type       | Value
     -------------------------------------------------------------------------------
     4        | int        | numVoxels (N)
     4 x N    | int        | (x, y, z, colorIndex) : 1 byte for each component
@@ -35,7 +35,7 @@ class SIZE(BaseChunk):
     '''
      Chunk id 'SIZE' : model size
     -------------------------------------------------------------------------------
-    # Bytes  | Type       | Value
+    Bytes  | Type       | Value
     -------------------------------------------------------------------------------
     4        | int        | size x
     4        | int        | size y
@@ -52,7 +52,7 @@ class RGBA(BaseChunk):
     '''
     Chunk id 'RGBA' : palette
     -------------------------------------------------------------------------------
-    # Bytes  | Type       | Value
+    Bytes  | Type       | Value
     -------------------------------------------------------------------------------
     4 x 256  | int        | (R, G, B, A) : 1 byte for each component
                         | * <NOTICE>
