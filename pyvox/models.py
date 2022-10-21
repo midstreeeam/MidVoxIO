@@ -1,3 +1,5 @@
+from ast import Mod
+from collections import namedtuple
 from pprint import pformat
 from struct import unpack_from, calcsize, pack
 
@@ -5,6 +7,8 @@ import numpy as np
 from PIL import Image
 
 from .exceptions import DumpingException
+
+ModelAttr=namedtuple('ModelAttr','attr_dic id')
 
 class XYZI():
     '''
@@ -111,15 +115,24 @@ class nTRN():
         self.layer_id=layer_id
         self.frames=frames
     
-    def to_b():
-        raise DumpingException("nTRN's to_be function not implemented yet")
-    
+    def to_b(self):
+        byts=pack('i',self.node_id)
+        byts+=Bdict(py_dict=self.node_attributes).bytes
+        byts+=pack('4i',self.child_node_id,
+                        self.reversed_id,
+                        self.layer_id,
+                        len(self.frames))
+        for frame in self.frames:
+            byts+=Bdict(py_dict=frame)
+        return byts
+
     def __repr__(self):
         ret=f'''
 ====nTRN====
 node_id:{self.node_id}
 frames:{format(self.frames)}
 child_node_id:{self.child_node_id}
+layer_id:{self.layer_id}
 '''
         return ret
 
@@ -165,17 +178,25 @@ class nSHP():
         (_f : int32)   frame index, start from 0
     }xN
     '''
-    def __init__(self,node_id,dic,models):
+    def __init__(self,node_id,models,node_attr={}):
         self.node_id=node_id
-        self.node_attr=dic
+        self.node_attr=node_attr
         self.models=models
     def __repr__(self):
         ret=f'''
 ====nSHP====
 node_id:{self.node_id}
-models:{pformat(self.models)}
+models:{pformat([i for i in self.models])}
 '''
         return ret
+    def to_b(self):
+        byts=pack('i',self.node_id)
+        byts+=Bdict(py_dict=self.node_attr).bytes
+        byts+=pack('i',len(self.models))
+        for model in self.models:
+            byts+=pack('i',model.id)
+            byts+=Bdict(py_dict=model.attr_dic)
+        return byts
 
 class Material():
     '''
@@ -268,17 +289,29 @@ class Bstring():
         int32   : buffer size (in bytes)
         int8xN	: buffer (without the ending "\0")
     '''
-    def __init__(self,bytes,offset=0):
-        self.string=None
-        self.content=bytes
-        self.length=int(unpack_from('i',bytes,offset)[0])
-        self.offset=offset+4
-        self._unpack()
-        self.byte_length=calcsize('i')+self.length*calcsize('s')
+    def __init__(self,bytes=None,offset=0,py_str=None):
+        if bytes:
+            self.string=None
+            self.bytes=bytes
+            self.length=int(unpack_from('i',bytes,offset)[0])
+            self.offset=offset+4
+            self._unpack()
+            self.byte_length=calcsize('i')+self.length*calcsize('s')
+        elif isinstance(py_str,str):
+            self.string=py_str
+            self.bytes=self.to_b()
+        else:
+            raise Exception("no bytes nor str")
     
     def _unpack(self):
         fmt=str(self.length)+'s'
-        self.string=str(unpack_from(fmt,self.content,self.offset)[0])[2:-1]
+        self.string=str(unpack_from(fmt,self.bytes,self.offset)[0])[2:-1]
+
+    def to_b(self):
+        byts=pack('i',len(self.string))
+        fmt=str(len(self.string))+'s'
+        byts+=pack(fmt,self.string.encode('utf8'))
+        return byts
 
 class Bdict():
     '''
@@ -290,19 +323,33 @@ class Bdict():
         STRING	: value
         }xN
     '''
-    def __init__(self,bytes,offset=0):
-        self.dic={}
-        self.content=bytes
-        self.length=int(unpack_from('i', bytes,offset)[0])
-        self.offset=offset+4
-        self._unpack()
+    def __init__(self,bytes=None,offset=0,py_dict=None):
+        if bytes:
+            self.dic={}
+            self.bytes=bytes
+            self.length=int(unpack_from('i', bytes,offset)[0])
+            self.offset=offset+4
+            self._unpack()
+        elif isinstance(py_dict,dict):
+            self.dic=py_dict
+            self.bytes=self.to_b()
+        else:
+            raise Exception("non bytes nor dict")
         
     def _unpack(self):
         for _ in range(self.length):
-            bs1=Bstring(self.content,self.offset)
+            bs1=Bstring(self.bytes,self.offset)
             key=bs1.string
             self.offset+=bs1.byte_length
-            bs2=Bstring(self.content,self.offset)
+            bs2=Bstring(self.bytes,self.offset)
             value=bs2.string
             self.offset+=bs2.byte_length
             self.dic[key]=value
+    
+    def to_b(self):
+        byts=pack('i',len(self.dic))
+        for key,value in self.dic.items():
+            byts+=Bstring(py_str=key).bytes
+            byts+=Bstring(py_str=str(value)).bytes
+        return byts
+        

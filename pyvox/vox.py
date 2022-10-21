@@ -80,13 +80,13 @@ class Chunk():
             models=[]
             offset=bdict.offset+4
             for i in range(model_num):
-                mod={}
-                mod['_id']=int(unpack_from('i',self.content,offset)[0])
+                _id=int(unpack_from('i',self.content,offset)[0])
                 _bdict=Bdict(self.content,offset+4)
-                mod['_attr_dic']=_bdict.dic
+                _attr_dic=_bdict.dic
                 offset=_bdict.offset
+                mod=ModelAttr(attr_dic=_attr_dic,id=_id)
                 models.append(mod)
-            self.nshp=nSHP(_node_id,_node_attr,models)
+            self.nshp=nSHP(_node_id,models,node_attr=_node_attr)
 
         elif self.id == b'LAYR':
             _id = unpack_from('i', self.content)
@@ -179,7 +179,7 @@ class Vox():
                     for model in shp.models:
                         trlinks.append((
                             [int(i) for i in trn.frames[frame_index]['_t'].split()],
-                            model['_id']))
+                            model.id))
         return trlinks
     
     def _parse_chunk(self):
