@@ -123,7 +123,7 @@ class nTRN():
                         self.layer_id,
                         len(self.frames))
         for frame in self.frames:
-            byts+=Bdict(py_dict=frame)
+            byts+=Bdict(py_dict=frame).bytes
         return byts
 
     def __repr__(self):
@@ -352,4 +352,3 @@ class Bdict():
             byts+=Bstring(py_str=key).bytes
             byts+=Bstring(py_str=str(value)).bytes
         return byts
-        

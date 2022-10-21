@@ -58,6 +58,7 @@ class Chunk():
                 frames.append(_bdict.dic)
                 offset=_bdict.offset
             self.ntrn=nTRN(_id,bdict.dic,c_id,r_id,l_id,frames)
+            
         elif self.id == b'rOBJ':
             self.robj = ROBJ(Bdict(self.content).dic)
             
