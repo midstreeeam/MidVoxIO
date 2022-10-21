@@ -13,7 +13,7 @@ from pyvox.voxio import  *
 
 # write_list_to_vox(v,'test.vox',path)
 
-# t=Writer(v,palette_path=path)
+# t=ArrayWriter(v,palette_path=path)
 # t.write('test.vox')
 
 

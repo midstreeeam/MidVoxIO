@@ -4,7 +4,9 @@ User API
 import matplotlib.pylab as plt
 import numpy as np
 
-from .writer import Writer
+from pyvox.exceptions import DumpingException
+
+from .writer import ArrayWriter, ChunkWriter
 from .parser import Parser
 from .vox import Vox
 
@@ -75,9 +77,11 @@ def write_list_to_vox(arr,vox_fname:str,palette_path=None,palette_arr=None):
     palette_arr: if you want to use your own palette
     '''
     if palette_arr:
-        t=Writer(arr,palette_arr=palette_arr)
-    if palette_path:
-        t=Writer(arr,palette_path=palette_path)
+        t=ArrayWriter(arr,palette_arr=palette_arr)
+    elif palette_path:
+        t=ArrayWriter(arr,palette_path=palette_path)
+    else:
+        raise DumpingException("missing the required palette")
     t.write(vox_fname)
 
 def plot_3d(arr):
