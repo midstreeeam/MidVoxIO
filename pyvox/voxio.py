@@ -4,7 +4,7 @@ User API
 import matplotlib.pylab as plt
 import numpy as np
 
-from pyvox.exceptions import DumpingException
+from .exceptions import DumpingException
 
 from .writer import ArrayWriter, ChunkWriter
 from .parser import Parser

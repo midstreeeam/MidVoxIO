@@ -134,6 +134,8 @@ class Vox():
         self.cameras=[]
         self.palette_notes=[]
         self._parse_chunk()
+        if len(self.palettes)==0:
+            self.palettes.append(default_palette)
         self._trans(self._get_transform())
         pass
 
@@ -221,18 +223,3 @@ class Vox():
             c=i[3]
             arr[x,y,z]=color[c-1]/255
         return arr
-    
-
-    @property
-    def palette(self):
-        return self._palette
-
-    @palette.setter
-    def palette(self, val:list):
-        if isinstance(val,list) and np.array(val).shape==(255,4):
-            self._palette = val
-            self.default_palette = False
-        else:
-            raise AssigningException('The value seems not a palette.')
-
-    pass
