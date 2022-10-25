@@ -144,7 +144,7 @@ class Vox():
         if len(transforms)!=len(self.voxels):
             print(f'_t in nTRN not match models, transform not applied')
             return
-
+        
         # calcualte the size of the combined moduel
         tran=[]
         for i in transforms:
@@ -179,6 +179,13 @@ class Vox():
         for trn in self.ntrns:
             for shp in self.nshps:
                 if trn.child_node_id==shp.node_id:
+                    try:
+                        trn.frames[frame_index]['_t']
+                    except KeyError:
+                        trn.frames[frame_index]['_t']='0 0 0'
+                        raise Exception
+                    except:
+                        raise Exception
                     for model in shp.models:
                         trlinks.append((
                             [int(i) for i in trn.frames[frame_index]['_t'].split()],
