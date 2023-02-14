@@ -42,7 +42,7 @@ class BaseWriter():
 class ArrayWriter(BaseWriter):
 
     def __init__(self,vox_arr:np.ndarray,palette_path=None,palette_arr=None):
-        super().__init__(palette_arr,palette_path)
+        super().__init__(palette_path,palette_arr)
 
         self.vox=np.array(vox_arr*255,dtype=int)
         self.xyzi=XYZI(self.mapping())
