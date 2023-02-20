@@ -24,7 +24,7 @@ result:
 
 #### viz_vox()
 
-use `viz_vox()` to visualize your .vox file. Using `matplotlib` to plot the file.
+use `viz_vox()` to visualize your .vox file. It uses `matplotlib` to plot the file internally.
 ```Python
 from voxio import viz_vox
 
@@ -78,6 +78,6 @@ write_list_tov_vox(arr,'fname.vox',palette_path) # then, you save the 'fname.vox
 
 ## Others
 
-- This project was originally created for me to use it myself.
+- This project was originally created for me to use it myself, so the API design is casual and the error message is not complete. Will consider make it more formal if there are really people using it.
 - Gromgull's [py-vox-io](https://github.com/gromgull/py-vox-io) is good to use, but only for MagicalVoxel 0.98 or older version, and he somehow stop updating. This voxio reuse some of Gromgull's code (mostly in parser), but now it fit MagicalVoxel 0.99. Also, there are also new features like `viz_vox()` to visualize the vox array without using magicalvoxel.
 - Lots of functions are still under development.
