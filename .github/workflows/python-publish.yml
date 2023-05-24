@@ -21,27 +21,65 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.7'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
-    - name: Build package
-      run: python -m build
-#     - name: Publish package
-#       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+#     steps:
+#     - uses: actions/checkout@v3
+#     - name: Set up Python
+#       uses: actions/setup-python@v3
 #       with:
-#         user: __token__
-#         password: ${{ secrets.PYPI_API_TOKEN }}
-    - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        python -m pip install twine
-        twine upload dist/*
+#         python-version: '3.7'
+#     - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install build
+#     - name: Build package
+#       run: python -m build
+# #     - name: Publish package
+# #       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+# #       with:
+# #         user: __token__
+# #         password: ${{ secrets.PYPI_API_TOKEN }}
+#     - name: Publish to PyPI
+#       env:
+#         TWINE_USERNAME: Midstream
+#         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+#       run: |
+#         python -m pip install twine
+#         twine upload dist/*
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+
+      - name: Build and test
+        run: |
+          python setup.py sdist bdist_wheel
+          python -m pytest
+
+      - name: Determine new version
+        id: version
+        run: |
+          pip install semantic-release
+          semantic-release print-version > version.txt
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m twine upload --skip-existing dist/*
+
+      - name: Update package version
+        run: |
+          pip install semantic-release
+          semantic-release changelog > CHANGELOG.md
+
