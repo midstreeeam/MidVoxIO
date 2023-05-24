@@ -65,23 +65,11 @@ jobs:
         run: |
           hatchling build
 
-#       - name: Determine new version
-#         id: version
-#         run: |
-#           pip install hatchling
-#           hatchling print-version > version.txt
-
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: Midstream
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           python -m twine upload --skip-existing dist/*
-
-      - name: Update package version
-        run: |
-          pip install hatchling
-          hatchling changelog > CHANGELOG.md
-
 
 
