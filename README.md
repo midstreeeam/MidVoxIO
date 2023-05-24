@@ -1,8 +1,15 @@
-# PyVox
+# MidVoxIO
 The python IO for [magical voxel](https://ephtracy.github.io/)'s [.vox format](https://github.com/ephtracy/voxel-model).
 
 
 ## Install
+
+### pip
+```
+pip install midvoxio
+```
+
+### through repo
 - clone the repo
 - add the repo to path
 - Install numpy and matplotlib if you haven't
