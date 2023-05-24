@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "midvoxio"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
   { name="Midstream", email="midstream.lou@gmail.com" },
 ]
@@ -19,5 +19,5 @@ classifiers = [
 
 
 [project.urls]
-"Homepage" = "https://github.com/midstreeeam/PyVox"
-"Bug Tracker" = "https://github.com/midstreeeam/PyVox/issues"
+"Homepage" = "https://github.com/midstreeeam/MidVoxIO"
+"Bug Tracker" = "https://github.com/midstreeeam/MidVoxIO/issues"
