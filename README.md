@@ -18,7 +18,7 @@ pip install midvoxio
 #### vox_to_arr()
 use `vox_to_arr()` to parse .vox file into numpy array.
 ```Python
-from voxio import vox_to_arr
+from midvoxio.voxio import vox_to_arr
 
 print(vox_to_arr('vox/99/3x3x3.vox').shape)
 ```
@@ -33,7 +33,7 @@ result:
 
 use `viz_vox()` to visualize your .vox file. It uses `matplotlib` to plot the file internally.
 ```Python
-from voxio import viz_vox
+from midvoxio.voxio import viz_vox
 
 viz_vox('vox/99/3x3x3.vox')
 ```
@@ -46,7 +46,7 @@ then, the python will give you a 3d plot.
 
 use `get_rendering_attributes()`,`get_cameras()`, and `get_materials()` to get vox info.
 ```Python
->>> from voxio import *
+>>> from midvoxio.voxio import *
 >>> print(get_cameras('vox/99/cars.vox')[0])
 {'id': (0,), 'attributes': {'_mode': 'pers', '_focus': '0 0 0', '_angle': '0 0 0', '_radius': '0', '_frustum': '0.414214', '_fov': '45'}}
 >>> print(get_rendering_attributes('vox/99/3x3x3.vox')[0])
@@ -62,7 +62,7 @@ use `get_rendering_attributes()`,`get_cameras()`, and `get_materials()` to get v
 use `write_list_to_vox` to generate vox file from exist python list. You can use this function to export the python list as vox file, so you will be able to edit vox file in python.
 
 ```Python
-from voxio import write_list_to_vox,plot_3d
+from midvoxio.voxio import write_list_to_vox,plot_3d
 
 arr=[] # define your python list that represent the 3d model here
 
