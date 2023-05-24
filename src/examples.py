@@ -1,5 +1,5 @@
-from pyvox.models import *
-from pyvox.voxio import  * 
+from midvoxio.models import *
+from midvoxio.voxio import  * 
 
 # print(vox_to_arr('assets/vox/99/3x3x3.vox'))
 # viz_vox('assets/vox/98/cat.vox')
