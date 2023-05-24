@@ -64,11 +64,11 @@ jobs:
         run: |
           hatchling build
 
-      - name: Determine new version
-        id: version
-        run: |
-          pip install hatchling
-          hatchling print-version > version.txt
+#       - name: Determine new version
+#         id: version
+#         run: |
+#           pip install hatchling
+#           hatchling print-version > version.txt
 
       - name: Publish to PyPI
         env:
