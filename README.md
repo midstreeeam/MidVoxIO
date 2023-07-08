@@ -1,4 +1,7 @@
 # MidVoxIO
+
+[![Downloads](https://static.pepy.tech/badge/midvoxio)](https://pepy.tech/project/midvoxio)
+
 The python IO for [magical voxel](https://ephtracy.github.io/)'s [.vox format](https://github.com/ephtracy/voxel-model).
 
 
