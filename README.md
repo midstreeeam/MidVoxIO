@@ -1,5 +1,6 @@
 # MidVoxIO
 
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/midstreeeam/MidVoxIO/python-publish.yml)
 [![Downloads](https://static.pepy.tech/badge/midvoxio)](https://pepy.tech/project/midvoxio)
 
 The python IO for [magical voxel](https://ephtracy.github.io/)'s [.vox format](https://github.com/ephtracy/voxel-model).
