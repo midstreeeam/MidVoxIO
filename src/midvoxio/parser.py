@@ -41,7 +41,7 @@ class Parser():
         header, version = self.unpack(VOX_FMT)
         if header != VOX_HEADER: 
             raise ParsingException("Not a vox file")
-        if version != VOX_VERSION: 
+        if not version in VOX_VERSION: 
             raise ParsingException("Unknown vox version: %s expected %s"%(version,VOX_VERSION))
         main=self._parseChunk()
         if main.id != b'MAIN': raise ParsingException("Missing MAIN Chunk")

@@ -8,6 +8,8 @@ from midvoxio.voxio import  *
 # print(get_rendering_attributes('assets/vox/99/3x3x3.vox'))
 # vox = get_vox('assets/vox/99/cars.vox')
 
+# viz_vox('assets/vox/99/chr_knight.vox')
+
 # v=vox_to_arr('assets/vox/98/cat.vox')
 # path='palette/cat.png'
 
