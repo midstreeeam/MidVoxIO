@@ -76,12 +76,20 @@ def write_list_to_vox(arr,vox_fname:str,palette_path=None,palette_arr=None):
     palette_path: if you want to use your own palette
     palette_arr: if you want to use your own palette
     '''
+    def generate_palette(array):
+        original_shape = array.shape
+        reshaped_array = array.reshape(-1, original_shape[-1])
+        unique_rows = np.unique(reshaped_array, axis=0)
+        return unique_rows.tolist()
+    
     if palette_arr:
         t=ArrayWriter(arr,palette_arr=palette_arr)
     elif palette_path:
         t=ArrayWriter(arr,palette_path=palette_path)
     else:
-        raise DumpingException("missing the required palette")
+        print("missing the required palette, automatically generated")
+        palette_arr = generate_palette(arr)
+        t=ArrayWriter(arr,palette_arr=palette_arr)
     t.write(vox_fname)
 
 def plot_3d(arr):

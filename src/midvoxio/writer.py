@@ -17,11 +17,14 @@ class BaseWriter():
     def _get_color_index(self,color):
         com=lambda x,y:x[0]==y[0] and x[1]==y[1] and x[2]==y[2] and x[3]==y[3]
         arr=self.rgba.palette_arr
+        
+        if com(color,[0,0,0,0]):
+                return False
+
         for i in range(255):
             if com(arr[i],color):
                 return i+1
-            if com(color,[0,0,0,0]):
-                return False
+            
         raise ValueError('color {} not found'.format(str(color)))
     
     def dump(self):
