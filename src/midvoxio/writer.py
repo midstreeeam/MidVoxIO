@@ -19,7 +19,7 @@ class BaseWriter():
         arr=self.rgba.palette_arr
         
         if com(color,[0,0,0,0]):
-                return False
+            return False
 
         for i in range(255):
             if com(arr[i],color):
