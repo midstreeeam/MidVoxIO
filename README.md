@@ -32,7 +32,9 @@ result:
 (3, 3, 3, 4) # the four axis are (x,y,z,color), color is [r,g,b,a] here
 ```
 
-
+#### multiple models
+if there are multiple models in one vox file, use `vox_to_arr('path',n)` to get the nth model's array.
+use `vox_to_arr('path',-1)` to get the array of combined model.
 
 #### viz_vox()
 
