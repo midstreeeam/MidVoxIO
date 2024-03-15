@@ -8,6 +8,8 @@ from PIL import Image
 
 from .exceptions import DumpingException
 
+UNSET = np.array([0,0,0,0])
+
 ModelAttr=namedtuple('ModelAttr','attr_dic id')
 default_palette=[
     0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff, 0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff, 0xff00ccff, 0xffff99ff, 0xffcc99ff, 0xff9999ff,
@@ -40,15 +42,15 @@ class XYZI():
     -------------------------------------------------------------------------------
     '''
     id=b'XYZI'
-    def __init__(self,xyzi_arr):
+    def __init__(self, xyzi_arr):
         self.xyzi=xyzi_arr
-        pass
     
     def to_b(self):
-        length=len(self.xyzi)
-        bstr=pack('i',length)
-        for i in self.xyzi:
-            bstr+=pack('4B',i[0],i[1],i[2],i[3])
+        length=self.xyzi.size
+        bstr=pack("i", length)
+        x, y, z = np.mgrid[slice(self.xyzi.shape[0]), slice(self.xyzi.shape[1]), slice(self.xyzi.shape[2])]
+        arr = np.c_[x.flatten(), y.flatten(), z.flatten(), self.xyzi.flatten()]
+        bstr += arr.astype(np.uint8).tobytes()
         return bstr
 
 class SIZE():
