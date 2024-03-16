@@ -114,6 +114,10 @@ class Chunk():
         elif self.id == b'IMAP':
             pass
 
+        elif self.id == b'MATT':
+            # TODO: Warn user that we are skipping depracated chunk type
+            pass
+
 
         else:
             raise ParsingException('Unknown chunk type: %s'%self.id)
