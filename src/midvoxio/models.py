@@ -96,7 +96,13 @@ class RGBA():
     def _get_palette_arr_from_img(self,img_path):
         img=Image.open(img_path)
         color=np.array(img)
-        return color[0]
+        color = color[0]
+        
+        # Add missing alpha to PNG data with no alpha for consistent matching
+        if color.shape[-1] == 3:
+            color = np.append( color, np.full((256, 1), 255), axis=1 )
+
+        return color
     
     def to_b(self):
         bstr=b''
