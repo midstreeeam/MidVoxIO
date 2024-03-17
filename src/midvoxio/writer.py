@@ -2,7 +2,7 @@ from struct import pack
 
 import numpy as np
 
-from .models import SIZE, XYZI, RGBA
+from .models import SIZE, XYZI, RGBA, UNSET
 
 class BaseWriter():
     def __init__(self,palette_path=None,palette_arr=None) -> None:
@@ -14,17 +14,12 @@ class BaseWriter():
         else:
             raise Exception("palette missing")
     
-    def _get_color_index(self,color):
-        com=lambda x,y:x[0]==y[0] and x[1]==y[1] and x[2]==y[2] and x[3]==y[3]
-        arr=self.rgba.palette_arr
-        
-        if com(color,[0,0,0,0]):
+    def _get_color_index(self, color):
+        if not np.any(color):
             return False
-
-        for i in range(255):
-            if com(arr[i],color):
-                return i+1
-            
+        where = np.asarray(np.all(self.rgba.palette_arr == color, axis=1)).nonzero()
+        if len(where):
+            return 1 + where[0][0]
         raise ValueError('color {} not found'.format(str(color)))
     
     def dump(self):
@@ -42,27 +37,27 @@ class BaseWriter():
         with open(fname,'wb') as f:
             f.write(self.dump())
 
+
 class ArrayWriter(BaseWriter):
-
     def __init__(self,vox_arr:np.ndarray,palette_path=None,palette_arr=None):
-        super().__init__(palette_path,palette_arr)
+        super().__init__(palette_path, palette_arr)
 
-        self.vox=np.array(vox_arr*255,dtype=int)
+        self.vox=np.array(vox_arr*255, dtype=np.uint8)
         self.xyzi=XYZI(self.mapping())
         self.size=SIZE(vox_arr.shape)
-        self.chunks=[self.size,self.xyzi,self.rgba]
-
+        self.chunks=[self.size, self.xyzi, self.rgba]
+    
     def mapping(self):
-        voxel=[]
-        vox=self.vox
-        for x in range(vox.shape[0]):
-            for y in range(vox.shape[1]):
-                for z in range(vox.shape[2]):
-                    c=vox[x,y,z]
-                    i=self._get_color_index(c)
-                    if i:
-                        voxel.append((x,y,z,i))
-        return voxel
+        safepalette = np.array([UNSET, *self.rgba.palette_arr[:-1]], dtype=np.uint8)
+        bytepallet = np.frombuffer(safepalette.tobytes(), dtype=np.uint32)
+        d = {v: k for (k, v) in enumerate(bytepallet.tolist())}
+
+        flatvox = self.vox.reshape(-1, self.vox.shape[-1])
+        flatbytes = np.frombuffer(flatvox.tobytes(), dtype=np.uint32)
+
+        uniques, inverse = np.unique(flatbytes, return_inverse = True)
+        arr = np.array([d.get(x, 0) for x in uniques], dtype=np.uint8)
+        return arr[inverse].reshape(*self.vox.shape[:-1]) 
 
 class ChunkWriter(BaseWriter):
     

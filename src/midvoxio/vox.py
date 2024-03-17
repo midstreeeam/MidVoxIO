@@ -1,3 +1,4 @@
+from math import prod
 from struct import unpack_from
 import logging
 logging.basicConfig(level=logging.WARNING,
@@ -136,38 +137,43 @@ class Vox():
         self._parse_chunk()
         if len(self.palettes)==0:
             self.palettes.append(default_palette)
+        self.full_vox = [self._to_full(v) for v in self.voxels]
         self._trans(self._get_transform())
         pass
 
-    def _trans(self,transforms):
+    def _to_full(self, model):
+        vc = np.array(model)
+        shape = 1 + vc.max(axis=0)
+        full = np.zeros(shape=shape[:-1], dtype=np.uint8)
+        full[vc[:, 0], vc[:, 1], vc[:, 2]] = vc[:, 3]
+        return full
 
-        if len(transforms)!=len(self.voxels):
-            print(f'_t in nTRN not match models, transform not applied')
+    def _trans(self, transforms):
+        """Transform all models and merge into one"""
+
+        if len(transforms) != len(self.voxels):
+            print(f"_t in nTRN not match models, transform not applied")
             return
-        
-        # calcualte the size of the combined moduel
-        tran=[]
-        for i in transforms:
-            tran.append(i[0])
-        tran=np.array(tran).transpose()
-        sizes=np.array(self.sizes).transpose()
-        x=max(sizes[0])+max(tran[0].tolist())-min(tran[0].tolist())
-        y=max(sizes[1])+max(tran[1].tolist())-min(tran[1].tolist())
-        z=max(sizes[2])+max(tran[2].tolist())-min(tran[2].tolist())
-        combined_size=(x,y,z)
+
+        # calculate the size of the combined module
+        transform_coords = np.array([t for (t, _) in transforms])
+        min_tran = transform_coords.min(axis=0)
+        max_tran = transform_coords.max(axis=0)
+        max_sizes = np.array(self.sizes).max(axis=0)
+        combined_size = max_sizes + max_tran - min_tran
+
         self.sizes.append(combined_size)
 
         # combine models
-        combined_voxel=[]
-        for trans,voxel in zip(transforms,self.voxels):
-            for sv in voxel:
-                combined_voxel.append((
-                    sv[0]+trans[0][0]-min(tran[0].tolist()),
-                    sv[1]+trans[0][1]-min(tran[1].tolist()),
-                    sv[2]+trans[0][2]-min(tran[2].tolist()),
-                    sv[3]))
-        self.voxels.append(combined_voxel)
+        combined_model = np.zeros(shape=combined_size, dtype=np.uint8)
+        for (transform, _), voxel_chunk in zip(transforms, self.voxels):
+            transform = np.array(transform)
+            offset = transform - min_tran
+            vc = np.array(voxel_chunk)
+            vc[:, 0:3] += offset
+            combined_model[vc[:, 0], vc[:, 1], vc[:, 2]] = vc[:, 3]
 
+        self.full_vox.append(combined_model)
 
     def _get_transform(self,frame_index=0):
         '''
@@ -220,13 +226,18 @@ class Vox():
 
 
     def to_list(self,vox_index=0,palette_index=0):
-        l,w,h=self.sizes[vox_index]
-        arr=np.zeros((l,w,h,4))
-        color=np.array(self.palettes[palette_index])
-        for i in self.voxels[vox_index]:
-            x=i[0]
-            y=i[1]
-            z=i[2]
-            c=i[3]
-            arr[x,y,z]=color[c-1]/255
-        return arr
+        shape = (*self.sizes[vox_index], 4)
+
+        # add blank to lookup to avoid negation
+        color = [UNSET] + self.palettes[palette_index]
+        vox = self.full_vox[vox_index]
+        uniques, inverse = np.unique(vox, return_inverse = True)
+        arr = np.array([color[x] for x in uniques], dtype=np.uint8)
+        arr = arr[inverse].reshape((*vox.shape, 4))
+
+        # fill to correct volume
+        if shape != arr.shape:
+            padding = [(0, s-a) for s, a in zip(shape, arr.shape)]
+            arr = np.pad(arr, padding)
+
+        return arr / 255
