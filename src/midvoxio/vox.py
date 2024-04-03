@@ -193,7 +193,7 @@ class Vox():
                         trn.frames[frame_index]['_t']
                     except KeyError:
                         trn.frames[frame_index]['_t']='0 0 0'
-                        raise Exception
+                        # raise Exception
                     except:
                         raise Exception
                     for model in shp.models:
