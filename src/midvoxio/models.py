@@ -87,7 +87,7 @@ class RGBA():
     '''
     id=b'RGBA'
     def __init__(self,img_path=None,palette_arr=None):
-        if palette_arr:
+        if not palette_arr is None:
             self.palette_arr=palette_arr
         else:
             self.palette_arr=self._get_palette_arr_from_img(img_path)
