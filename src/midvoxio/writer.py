@@ -9,7 +9,7 @@ class BaseWriter():
         self.chunks=[]
         if palette_path:
             self.rgba=RGBA(img_path=palette_path)
-        elif palette_arr:
+        elif not palette_arr is None:
             self.rgba=RGBA(palette_arr=palette_arr)
         else:
             raise Exception("palette missing")
