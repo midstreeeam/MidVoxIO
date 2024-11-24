@@ -46,10 +46,12 @@ class XYZI():
         self.xyzi=xyzi_arr
     
     def to_b(self):
-        length=self.xyzi.size
-        bstr=pack("i", length)
-        x, y, z = np.mgrid[slice(self.xyzi.shape[0]), slice(self.xyzi.shape[1]), slice(self.xyzi.shape[2])]
-        arr = np.c_[x.flatten(), y.flatten(), z.flatten(), self.xyzi.flatten()]
+        non_zero_indices = self.xyzi > 0
+        x, y, z = np.nonzero(non_zero_indices)
+        color_index = self.xyzi[non_zero_indices]
+        length = len(color_index)
+        bstr = pack("i", length)
+        arr = np.vstack([x, y, z, color_index]).T
         bstr += arr.astype(np.uint8).tobytes()
         return bstr
 
@@ -205,6 +207,7 @@ class nSHP():
         (_f : int32)   frame index, start from 0
     }xN
     '''
+    id = b'nSHP'
     def __init__(self,node_id,models,node_attr={}):
         self.node_id=node_id
         self.node_attr=node_attr
@@ -222,7 +225,7 @@ models:{pformat([i for i in self.models])}
         byts+=pack('i',len(self.models))
         for model in self.models:
             byts+=pack('i',model.id)
-            byts+=Bdict(py_dict=model.attr_dic)
+            byts+=Bdict(py_dict=model.attr_dic).bytes
         return byts
 
 class Material():
