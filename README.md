@@ -6,89 +6,212 @@
 
 The python IO to load/write/visualize [magical voxel](https://ephtracy.github.io/)'s [.vox format](https://github.com/ephtracy/voxel-model).
 
+## Installation
 
-## Install
-
-### pip
-```
+```bash
 pip install midvoxio
 ```
 
-### through repo
-- clone the repo
-- add the repo to path
-- Install numpy and matplotlib if you haven't
+## Basic Usage
 
-## Usage
-#### vox_to_arr()
-use `vox_to_arr()` to parse .vox file into numpy array.
-```Python
-from midvoxio.voxio import vox_to_arr
+```python
+from midvoxio import VoxModel
 
-print(vox_to_arr('vox/99/3x3x3.vox').shape)
+# Load a VOX file
+model = VoxModel.load("path/to/model.vox")
+
+# Visualize it
+model.visualize()
+
+# Create a new model
+new_model = VoxModel.create(size=(10, 10, 10))
+new_model.add_voxel(5, 5, 5, (255, 0, 0))  # Add a red voxel in the center
+new_model.save("my_model.vox")
 ```
-result:
-```Python
-(3, 3, 3, 4) # the four axis are (x,y,z,color), color is [r,g,b,a] here
+
+## API Reference
+
+### Loading Models
+
+```python
+# Load a model from a file
+model = VoxModel.load("path/to/model.vox")
+
+# Load with verbose output
+model = VoxModel.load("path/to/model.vox", verbose=True)
 ```
 
-#### multiple models
-if there are multiple models in one vox file, use `vox_to_arr('path',n)` to get the nth model's array.
-use `vox_to_arr('path',-1)` to get the array of combined model.
+### Creating Models
 
-#### viz_vox()
+```python
+# Create an empty model
+model = VoxModel.create()  # Default size is (32, 32, 32)
 
-use `viz_vox()` to visualize your .vox file. It uses `matplotlib` to plot the file internally.
-```Python
-from midvoxio.voxio import viz_vox
+# Create with specific size
+model = VoxModel.create(size=(16, 16, 16))
 
-viz_vox('vox/99/3x3x3.vox')
+# Create from a NumPy array
+import numpy as np
+array = np.zeros((10, 10, 10, 4))  # RGBA array
+array[5, 5, 5] = [1.0, 0.0, 0.0, 1.0]  # Red voxel at center
+model = VoxModel.from_array(array)
 ```
-then, the python will give you a 3d plot.
+
+### Adding Voxels
+
+```python
+# Add voxels with RGB or RGBA colors
+model.add_voxel(1, 2, 3, (255, 0, 0))       # Red voxel with RGB
+model.add_voxel(4, 5, 6, (0, 255, 0, 255))  # Green voxel with RGBA
+
+# Method chaining is supported
+model = (VoxModel.create()
+         .add_voxel(1, 1, 1, (255, 0, 0))
+         .add_voxel(2, 2, 2, (0, 255, 0))
+         .add_voxel(3, 3, 3, (0, 0, 255)))
+```
+
+### Visualizing Models
+
+```python
+# Visualize the model
+model.visualize()
+
+# Visualize a specific submodel (for files with multiple models)
+model.visualize(model_index=1)
+
+# Visualize the combined model
+model.visualize(model_index=-1)
+```
+
+When visualizing, a 3D plot will be displayed:
+
 <img src="/img/3x3x3.jpg" width="25%">
 
+### Converting to Array
 
+```python
+# Get a NumPy array representation of the model
+array = model.to_array()
 
-#### get other info
-
-use `get_rendering_attributes()`,`get_cameras()`, and `get_materials()` to get vox info.
-```Python
->>> from midvoxio.voxio import *
->>> print(get_cameras('vox/99/cars.vox')[0])
-{'id': (0,), 'attributes': {'_mode': 'pers', '_focus': '0 0 0', '_angle': '0 0 0', '_radius': '0', '_frustum': '0.414214', '_fov': '45'}}
->>> print(get_rendering_attributes('vox/99/3x3x3.vox')[0])
-{'_type': '_inf', '_i': '0.6', '_k': '255 255 255', '_angle': '50 50', '_area': '0.07'}
->>> print(get_materials('vox/99/3x3x3.vox')[0])
-{'id': (0,), 'properties': {'_type': '_diffuse', '_weight': '1', '_rough': '0.1', '_spec': '0.5', '_ior': '0.3'}}
+# Array has shape (width, height, depth, 4) with RGBA channels
+# Values range from 0.0 to 1.0
 ```
 
+### Saving Models
 
-
-#### write_list_to_vox()
-
-use `write_list_to_vox` to generate vox file from exist python list. You can use this function to export the python list as vox file, so you will be able to edit vox file in python.
-
-```Python
-from midvoxio.voxio import write_list_to_vox,plot_3d
-
-arr=[] # define your python list that represent the 3d model here
-
-# define your palette that relate to your model here
-# palette will be able to be automatically generated in the future
-palette=[]
-
-
-# you can use plotio to viz your arr before you save it to vox
-plot_3d(arr) # visualize your arr
-
-write_list_to_vox(arr,'fname.vox',palette_arr=palette) # then, you save the 'fname.vox'
-
-# you can also use png palette
-palette_path='palette.png'
-write_list_tov_vox(arr,'fname.vox',palette_path) # then, you save the 'fname.vox'
+```python
+# Save a model
+model.save("output.vox")
 ```
 
+### Model Information
 
+```python
+# Get model information
+print(f"Model has {model.get_models_count()} models")
+print(f"Chunk names: {model.get_chunk_names()}")
+print(f"Materials: {model.get_materials()}")
+print(f"Cameras: {model.get_cameras()}")
+print(f"Rendering attributes: {model.get_rendering_attributes()}")
+```
+
+## Examples
+
+### Creating a Cube
+
+```python
+from midvoxio import VoxModel
+
+# Create a new model
+model = VoxModel.create(size=(10, 10, 10))
+
+# Create a cube
+for x in range(2, 5):
+    for y in range(2, 5):
+        for z in range(2, 5):
+            # Add different colors to different sides
+            if x == 2:
+                color = (255, 0, 0)  # Red
+            elif x == 4:
+                color = (0, 255, 0)  # Green
+            elif y == 2:
+                color = (0, 0, 255)  # Blue
+            elif y == 4:
+                color = (255, 255, 0)  # Yellow
+            elif z == 2:
+                color = (255, 0, 255)  # Magenta
+            elif z == 4:
+                color = (0, 255, 255)  # Cyan
+            else:
+                color = (255, 255, 255)  # White
+                
+            model.add_voxel(x, y, z, color)
+
+# Visualize the result
+model.visualize()
+```
+
+### Creating a Checkerboard Pattern
+
+```python
+from midvoxio import VoxModel
+
+# Create a new model
+model = VoxModel.create(size=(8, 8, 8))
+
+# Create a checkerboard floor
+for x in range(8):
+    for z in range(8):
+        if (x + z) % 2 == 0:
+            model.add_voxel(x, 0, z, (255, 255, 255))  # White
+        else:
+            model.add_voxel(x, 0, z, (0, 0, 0, 255))   # Black
+
+# Add pillars at the corners
+model.add_voxel(1, 1, 1, (255, 0, 0))
+model.add_voxel(1, 2, 1, (255, 0, 0))
+model.add_voxel(6, 1, 1, (0, 255, 0))
+model.add_voxel(6, 2, 1, (0, 255, 0))
+model.add_voxel(1, 1, 6, (0, 0, 255))
+model.add_voxel(1, 2, 6, (0, 0, 255))
+model.add_voxel(6, 1, 6, (255, 255, 0))
+model.add_voxel(6, 2, 6, (255, 255, 0))
+
+# Visualize the result
+model.visualize()
+```
+
+### Modifying an Existing Model
+
+```python
+from midvoxio import VoxModel
+
+# Load an existing model
+model = VoxModel.load("path/to/model.vox")
+
+# Convert to array
+array = model.to_array()
+
+# Modify the array
+array[0, 0, 0] = [1.0, 0.0, 0.0, 1.0]  # Add a red voxel at origin
+
+# Create a new model from the modified array
+modified_model = VoxModel.from_array(array)
+
+# Visualize and save
+modified_model.visualize()
+modified_model.save("modified_model.vox")
+```
+
+## Notes
+
+- The previous functional API (`vox_to_arr`, `viz_vox`, etc.) is still available but considered legacy. New code should use the `VoxModel` class.
+- This library supports MagicaVoxel 0.99 and later versions.
+
+## License
+
+MIT
 
 ## Others
 

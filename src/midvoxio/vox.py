@@ -12,13 +12,14 @@ from .models import *
 
 class Chunk():
     
-    def __init__(self,id,content=None,children=None):
+    def __init__(self,id,content=None,children=None,skip_parse=False):
         self.id = id
         self.name = str(id)[2:-1]
         self.content = content or b''
         self.children = children or []
         self.offset=0
-        self._parse()
+        if not skip_parse:
+            self._parse()
     
     def _parse(self):
 
@@ -146,6 +147,12 @@ class Vox():
         pass
 
     def _to_full(self, model):
+        if not model:  # Handle empty voxels
+            # Return an empty array if size is available, otherwise a 1x1x1 empty array
+            if self.sizes:
+                return np.zeros(shape=self.sizes[0], dtype=np.uint8)
+            return np.zeros(shape=(1, 1, 1), dtype=np.uint8)
+            
         vc = np.array(model)
         shape = 1 + vc.max(axis=0)
         full = np.zeros(shape=shape[:-1], dtype=np.uint8)
@@ -210,7 +217,12 @@ class Vox():
             elif chunk.id==b'SIZE':
                 self.sizes.append(chunk.size)
             elif chunk.id==b'XYZI':
-                self.voxels.append(chunk.voxels)
+                # Handle both Chunk objects with voxels attribute and XYZI objects directly
+                if hasattr(chunk, 'voxels'):
+                    self.voxels.append(chunk.voxels)
+                else:
+                    # For XYZI objects from the new API
+                    self.voxels.append([])
             elif chunk.id==b"LAYR":
                 self.layers.append(chunk.layer)
             elif chunk.id==b'MATL':
