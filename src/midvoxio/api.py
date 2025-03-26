@@ -48,41 +48,23 @@ class VoxModel:
         self._voxels = None
         self._palette = None
         
-        # Initialize editable state if needed
         if editable:
-            # Extract size from vox if available, otherwise use default
             if self._vox.sizes:
                 self._size = tuple(self._vox.sizes[0])
             else:
                 self._size = (32, 32, 32)
                 
-            # Extract voxels if available
             if self._vox.full_vox:
                 self._voxels = np.array(self._vox.full_vox[0], dtype=np.uint8)
-                
-                # Convert to RGBA format
                 arr = self.to_array(0)
                 self._voxels = (arr * 255).astype(np.uint8)
             else:
                 self._voxels = np.zeros((*self._size, 4), dtype=np.uint8)
                 
-            # Extract palette if available
             if self._vox.palettes:
                 self._palette = np.array(self._vox.palettes[0], dtype=np.uint8)
             else:
-                # Default palette
-                self._palette = np.array([
-                    [0, 0, 0, 0],  # First color is transparent
-                    *[[r, g, b, 255] for r, g, b in [
-                        (255, 255, 255),  # White
-                        (255, 0, 0),      # Red
-                        (0, 255, 0),      # Green
-                        (0, 0, 255),      # Blue
-                        (255, 255, 0),    # Yellow
-                        (255, 0, 255),    # Magenta
-                        (0, 255, 255),    # Cyan
-                    ]]
-                ], dtype=np.uint8)
+                self._palette = np.array([[0, 0, 0, 255]], dtype=np.uint8)
     
     @classmethod
     def load(cls, file_path: Union[str, Path], verbose: bool = False) -> 'VoxModel':
@@ -119,54 +101,28 @@ class VoxModel:
         Returns:
             A VoxModel instance ready for editing
         """
-        # Create a minimal array with the specified size
-        array = np.zeros((*size, 4), dtype=np.uint8)
+        default_palette = np.array([[0, 0, 0, 255]], dtype=np.uint8)
         
-        # Create a default palette
-        default_palette = np.array([
-            [0, 0, 0, 0],  # First color is transparent
-            *[[r, g, b, 255] for r, g, b in [
-                (255, 255, 255),  # White
-                (255, 0, 0),      # Red
-                (0, 255, 0),      # Green
-                (0, 0, 255),      # Blue
-                (255, 255, 0),    # Yellow
-                (255, 0, 255),    # Magenta
-                (0, 255, 255),    # Cyan
-            ]]
-        ], dtype=np.uint8)
-        
-        # Create writer and get chunks
-        writer = ArrayWriter(array / 255.0, palette_arr=default_palette)
-        
-        # Create chunks for Vox
         from .vox import Chunk
-        
-        # Create chunks directly without parsing
         chunks = []
         
-        # SIZE chunk
         size_chunk = Chunk(b'SIZE', b'', skip_parse=True)
         size_chunk.size = size
         chunks.append(size_chunk)
         
-        # XYZI chunk
         xyzi_chunk = Chunk(b'XYZI', b'', skip_parse=True)
         xyzi_chunk.voxels = []
         chunks.append(xyzi_chunk)
         
-        # RGBA chunk
         rgba_chunk = Chunk(b'RGBA', b'', skip_parse=True)
         rgba_chunk.palette = default_palette
         chunks.append(rgba_chunk)
         
-        # Create a new Vox object from the chunks
         vox = Vox(chunks)
         
-        # Return a new VoxModel in editable mode
         model = cls(vox, editable=True)
         model._size = size
-        model._voxels = array.copy()
+        model._voxels = np.zeros((*size, 4), dtype=np.uint8)
         model._palette = default_palette.copy()
         return model
     
@@ -184,61 +140,51 @@ class VoxModel:
         Returns:
             A VoxModel instance
         """
-        # Create a minimal Vox object from the array
         array_normalized = np.array(array)
         if array_normalized.dtype != np.uint8 and array_normalized.max() <= 1:
             array_normalized = (array_normalized * 255).astype(np.uint8)
         
-        # Process palette
         if palette is None:
-            # Default palette
-            palette_arr = np.array([
-                [0, 0, 0, 0],  # First color is transparent
-                *[[r, g, b, 255] for r, g, b in [
-                    (255, 255, 255),  # White
-                    (255, 0, 0),      # Red
-                    (0, 255, 0),      # Green
-                    (0, 0, 255),      # Blue
-                    (255, 255, 0),    # Yellow
-                    (255, 0, 255),    # Magenta
-                    (0, 255, 255),    # Cyan
-                ]]
-            ], dtype=np.uint8)
+            non_zero_mask = array_normalized[:, :, :, 3] > 0
+            if np.any(non_zero_mask):
+                colors = array_normalized[non_zero_mask]
+                unique_colors = np.unique(colors.reshape(-1, 4), axis=0)
+                
+                if len(unique_colors) > 0:
+                    palette_arr = unique_colors
+                else:
+                    palette_arr = np.array([[0, 0, 0, 255]], dtype=np.uint8)
+            else:
+                palette_arr = np.array([[0, 0, 0, 255]], dtype=np.uint8)
         elif isinstance(palette, str):
             img = Image.open(palette)
             palette_arr = np.array(img)
-            # Add missing alpha if needed
             if palette_arr.shape[-1] == 3:
                 palette_arr = np.append(palette_arr, np.full((256, 1), 255), axis=1)
+            palette_arr = palette_arr[palette_arr[:, 3] > 0]
         else:
             palette_arr = palette
+            if palette_arr.shape[0] > 0:
+                palette_arr = palette_arr[palette_arr[:, 3] > 0]
             
-        # Create chunks for Vox
         from .vox import Chunk
         
-        # Get the size
-        size = array.shape[:-1]  # Get size excluding color dimension
-        
-        # Create chunks directly without parsing
+        size = array.shape[:-1]
         chunks = []
         
-        # SIZE chunk
         size_chunk = Chunk(b'SIZE', b'', skip_parse=True)
         size_chunk.size = size
         chunks.append(size_chunk)
         
-        # XYZI chunk
         xyzi_chunk = Chunk(b'XYZI', b'', skip_parse=True)
         xyzi_chunk.voxels = []
         
-        # Add voxels - extract non-zero voxels from the array
         non_zero_mask = array_normalized[:, :, :, 3] > 0
         if np.any(non_zero_mask):
             x, y, z = np.nonzero(non_zero_mask)
             colors = array_normalized[x, y, z]
             color_indices = []
             
-            # Match each color to the palette - simple implementation for now
             for color in colors:
                 found = False
                 for i, pal_color in enumerate(palette_arr):
@@ -247,23 +193,22 @@ class VoxModel:
                         found = True
                         break
                 if not found:
-                    # Default to index 1 if not found
-                    color_indices.append(1)
+                    if len(palette_arr) < 256:
+                        palette_arr = np.vstack([palette_arr, color])
+                        color_indices.append(len(palette_arr) - 1)
+                    else:
+                        color_indices.append(0)
             
-            # Create voxels list in the required format
             xyzi_chunk.voxels = [(x[i], y[i], z[i], color_indices[i]) for i in range(len(x))]
         
         chunks.append(xyzi_chunk)
         
-        # RGBA chunk
         rgba_chunk = Chunk(b'RGBA', b'', skip_parse=True)
         rgba_chunk.palette = palette_arr
         chunks.append(rgba_chunk)
         
-        # Create a new Vox object from the chunks
         vox = Vox(chunks)
         
-        # Return a new model that's editable
         model = cls(vox, editable=True)
         model._voxels = array_normalized
         model._palette = palette_arr
@@ -310,19 +255,42 @@ class VoxModel:
         path = str(file_path) if isinstance(file_path, str) else str(file_path)
         
         if self._editable and self._voxels is not None:
-            # Save the edited model
-            writer = ArrayWriter(self._voxels / 255.0, palette_arr=self._palette)
+            voxels_to_save = self._voxels.copy()
+            palette_to_save = self._palette.copy()
+            
+            if len(palette_to_save) < 256:
+                pad_count = 256 - len(palette_to_save)
+                black_padding = np.zeros((pad_count, 4), dtype=np.uint8)
+                black_padding[:, 3] = 255
+                palette_to_save = np.vstack([palette_to_save, black_padding])
+            
+            if len(palette_to_save) > 256:
+                palette_to_save = palette_to_save[:256]
+            
+            writer = ArrayWriter(voxels_to_save / 255.0, palette_arr=palette_to_save)
             writer.write(path)
         elif model_index is not None:
-            # Save only the specified model
             array = self.to_array(model_index)
             palette_arr = self._vox.palettes[0] if self._vox.palettes else None
+            
+            if palette_arr is not None and len(palette_arr) < 256:
+                pad_count = 256 - len(palette_arr)
+                black_padding = np.zeros((pad_count, 4), dtype=np.uint8)
+                black_padding[:, 3] = 255
+                palette_arr = np.vstack([palette_arr, black_padding])
+            
             writer = ArrayWriter(array, palette_arr=palette_arr)
             writer.write(path)
         else:
-            # Save the full VOX file with all models and chunks
-            writer = ChunkWriter(self._vox.chunks, 
-                               palette_arr=self._vox.palettes[0] if self._vox.palettes else None)
+            palette_arr = self._vox.palettes[0] if self._vox.palettes else None
+            
+            if palette_arr is not None and len(palette_arr) < 256:
+                pad_count = 256 - len(palette_arr)
+                black_padding = np.zeros((pad_count, 4), dtype=np.uint8)
+                black_padding[:, 3] = 255
+                palette_arr = np.vstack([palette_arr, black_padding])
+            
+            writer = ChunkWriter(self._vox.chunks, palette_arr=palette_arr)
             writer.write(path)
             
         return self
@@ -386,9 +354,28 @@ class VoxModel:
             raise ValueError(f"Position ({x}, {y}, {z}) out of bounds for size {self._size}")
         
         if len(color) == 3:
-            color = (*color, 255)  # Add alpha if not provided
+            color = (*color, 255)
         
-        self._voxels[x, y, z] = color
+        if color[3] == 0:
+            return self
+            
+        color_arr = np.array(color, dtype=np.uint8)
+        
+        color_found = False
+        color_index = 0
+        
+        for i, pal_color in enumerate(self._palette):
+            if np.array_equal(pal_color, color_arr):
+                color_found = True
+                color_index = i
+                break
+                
+        if not color_found:
+            if len(self._palette) < 256:
+                self._palette = np.vstack([self._palette, color_arr])
+                color_index = len(self._palette) - 1
+        
+        self._voxels[x, y, z] = color_arr
         return self
     
     def add_palette_color(self, color: Union[Tuple[int, int, int, int], Tuple[int, int, int]]) -> int:
@@ -405,14 +392,12 @@ class VoxModel:
             raise ValueError("This model is not in editable mode. Create a new model with VoxModel.create() or use from_array().")
             
         if len(color) == 3:
-            color = (*color, 255)  # Add alpha if not provided
+            color = (*color, 255)
         
-        # Check if color already exists in palette
         for i, pal_color in enumerate(self._palette):
             if np.array_equal(pal_color, color):
                 return i
         
-        # Add color to palette if not found
         if len(self._palette) < 256:
             self._palette = np.vstack([self._palette, color])
             return len(self._palette) - 1
@@ -449,7 +434,6 @@ class VoxModel:
         self._size = new_size
         self._voxels = np.zeros((*new_size, 4), dtype=np.uint8)
         
-        # Copy old voxels to new array where possible
         min_x = min(old_voxels.shape[0], new_size[0])
         min_y = min(old_voxels.shape[1], new_size[1])
         min_z = min(old_voxels.shape[2], new_size[2])

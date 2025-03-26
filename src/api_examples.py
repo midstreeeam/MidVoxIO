@@ -18,11 +18,11 @@ print("\n=== Example 2: Saving a model to a new file ===")
 # model.save("output.vox")
 print("Model can be saved with model.save('output.vox')")
 
-# Example 3: Creating a model from scratch
-print("\n=== Example 3: Creating a model from scratch ===")
+# Example 3: Creating a sparse model from scratch
+print("\n=== Example 3: Creating a sparse model from scratch ===")
 new_model = VoxModel.create(size=(10, 10, 10))
 
-# Create a simple cube
+# Create a simple cube - only add the voxels that exist
 for x in range(2, 5):
     for y in range(2, 5):
         for z in range(2, 5):
@@ -46,7 +46,6 @@ for x in range(2, 5):
 
 # Visualize the model
 new_model.visualize()
-# new_model.save("cube.vox")
 print("Visualized cube model")
 
 # Example 4: Method chaining for model creation
@@ -60,7 +59,6 @@ simple_model = (VoxModel.create(size=(5, 5, 5))
                 .add_voxel(3, 2, 1, (0, 255, 255)))
 
 simple_model.visualize()
-# simple_model.save("simple.vox")
 print("Visualized simple model created with method chaining")
 
 # Example 5: Loading an existing model and modifying it
@@ -73,11 +71,10 @@ print(f"Loaded model with shape {array.shape}")
 array[0, 0, 0] = [255, 0, 0, 255]  # Add a red voxel at 0,0,0
 modified_model = VoxModel.from_array(array)
 modified_model.visualize()
-# modified_model.save("modified.vox")
 print("Visualized modified model")
 
-# Example 6: Creating and modifying a model directly
-print("\n=== Example 6: Creating and modifying a model directly ===")
+# Example 6: Creating a sparse checker pattern
+print("\n=== Example 6: Creating a sparse checker pattern ===")
 direct_model = VoxModel.create(size=(8, 8, 8))
 
 # Create a pattern
@@ -101,5 +98,7 @@ direct_model.add_voxel(6, 2, 6, (255, 255, 0))
 
 # Visualize the model
 direct_model.visualize()
-# direct_model.save("checker.vox")
-print("Visualized checker pattern model") 
+# Save the model to test the fix
+direct_model.save("checker.vox")
+
+print("Visualized and saved checkerboard model") 
