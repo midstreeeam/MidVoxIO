@@ -222,7 +222,7 @@ models:{pformat([i for i in self.models])}
         byts+=pack('i',len(self.models))
         for model in self.models:
             byts+=pack('i',model.id)
-            byts+=Bdict(py_dict=model.attr_dic)
+            byts+=Bdict(py_dict=model.attr_dic).bytes
         return byts
 
 class Material():
