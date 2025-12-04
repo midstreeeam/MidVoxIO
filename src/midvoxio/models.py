@@ -46,10 +46,12 @@ class XYZI():
         self.xyzi=xyzi_arr
     
     def to_b(self):
-        length=self.xyzi.size
-        bstr=pack("i", length)
-        x, y, z = np.mgrid[slice(self.xyzi.shape[0]), slice(self.xyzi.shape[1]), slice(self.xyzi.shape[2])]
-        arr = np.c_[x.flatten(), y.flatten(), z.flatten(), self.xyzi.flatten()]
+        non_zero_indices = self.xyzi > 0
+        x, y, z = np.nonzero(non_zero_indices)
+        color_index = self.xyzi[non_zero_indices]
+        length = len(color_index)
+        bstr = pack("i", length)
+        arr = np.vstack([x, y, z, color_index]).T
         bstr += arr.astype(np.uint8).tobytes()
         return bstr
 
