@@ -207,6 +207,7 @@ class nSHP():
         (_f : int32)   frame index, start from 0
     }xN
     '''
+    id = b'nSHP'
     def __init__(self,node_id,models,node_attr={}):
         self.node_id=node_id
         self.node_attr=node_attr
@@ -224,7 +225,7 @@ models:{pformat([i for i in self.models])}
         byts+=pack('i',len(self.models))
         for model in self.models:
             byts+=pack('i',model.id)
-            byts+=Bdict(py_dict=model.attr_dic)
+            byts+=Bdict(py_dict=model.attr_dic).bytes
         return byts
 
 class Material():
