@@ -8,6 +8,8 @@ from PIL import Image
 
 from .exceptions import DumpingException
 
+UNSET = np.array([0,0,0,0])
+
 ModelAttr=namedtuple('ModelAttr','attr_dic id')
 default_palette=[
     0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff, 0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff, 0xff00ccff, 0xffff99ff, 0xffcc99ff, 0xff9999ff,
@@ -40,15 +42,17 @@ class XYZI():
     -------------------------------------------------------------------------------
     '''
     id=b'XYZI'
-    def __init__(self,xyzi_arr):
+    def __init__(self, xyzi_arr):
         self.xyzi=xyzi_arr
-        pass
     
     def to_b(self):
-        length=len(self.xyzi)
-        bstr=pack('i',length)
-        for i in self.xyzi:
-            bstr+=pack('4B',i[0],i[1],i[2],i[3])
+        non_zero_indices = self.xyzi > 0
+        x, y, z = np.nonzero(non_zero_indices)
+        color_index = self.xyzi[non_zero_indices]
+        length = len(color_index)
+        bstr = pack("i", length)
+        arr = np.vstack([x, y, z, color_index]).T
+        bstr += arr.astype(np.uint8).tobytes()
         return bstr
 
 class SIZE():
@@ -85,7 +89,7 @@ class RGBA():
     '''
     id=b'RGBA'
     def __init__(self,img_path=None,palette_arr=None):
-        if palette_arr:
+        if not palette_arr is None:
             self.palette_arr=palette_arr
         else:
             self.palette_arr=self._get_palette_arr_from_img(img_path)
@@ -203,6 +207,7 @@ class nSHP():
         (_f : int32)   frame index, start from 0
     }xN
     '''
+    id = b'nSHP'
     def __init__(self,node_id,models,node_attr={}):
         self.node_id=node_id
         self.node_attr=node_attr
@@ -220,7 +225,7 @@ models:{pformat([i for i in self.models])}
         byts+=pack('i',len(self.models))
         for model in self.models:
             byts+=pack('i',model.id)
-            byts+=Bdict(py_dict=model.attr_dic)
+            byts+=Bdict(py_dict=model.attr_dic).bytes
         return byts
 
 class Material():

@@ -76,7 +76,7 @@ def write_list_to_vox(arr,vox_fname:str,palette_path=None,palette_arr=None):
     palette_path: if you want to use your own palette
     palette_arr: if you want to use your own palette
     '''
-    if palette_arr:
+    if not palette_arr is None:
         t=ArrayWriter(arr,palette_arr=palette_arr)
     elif palette_path:
         t=ArrayWriter(arr,palette_path=palette_path)
