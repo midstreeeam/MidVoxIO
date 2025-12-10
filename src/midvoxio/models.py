@@ -177,6 +177,7 @@ class NGRP():
     int32	: child node id
     }xN
     '''
+    id = b'nGRP'
     def __init__(self,node_id,dic,num,child_lst):
         self.node_id=node_id
         self.node_attr=dic
@@ -191,6 +192,13 @@ children_ids:{self.children_ids}
 '''
         return ret
 
+    def to_b(self):
+        byts = pack('i', self.node_id)
+        byts += Bdict(py_dict=self.node_attr).bytes
+        byts += pack('i', self.children_num)
+        for child_id in self.children_ids:
+            byts += pack('i', child_id)
+        return byts
 
 class nSHP():
     '''
@@ -283,10 +291,17 @@ class Layer():
             (_hidden : 0/1)
         int32	: reserved id, must be -1
     '''
+    id = b'LAYR'
     def __init__(self,id,dic,rev_id):
-        self.id=id
+        self.layer_id=id[0] if isinstance(id, tuple) else id
         self.dic=dic
-        self.rev_id=rev_id
+        self.rev_id=rev_id[0] if isinstance(rev_id, tuple) else rev_id
+
+    def to_b(self):
+        byts = pack('i', self.layer_id)
+        byts += Bdict(py_dict=self.dic).bytes
+        byts += pack('i', self.rev_id)
+        return byts
 
 class Note():
     '''
