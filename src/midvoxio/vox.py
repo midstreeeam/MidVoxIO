@@ -119,6 +119,9 @@ class Chunk():
             # TODO: Warn user that we are skipping depracated chunk type
             pass
 
+        elif self.id == b'META':
+            # Skip META chunk to prevent error when parsing v200 format
+            pass
 
         else:
             raise ParsingException('Unknown chunk type: %s'%self.id)
