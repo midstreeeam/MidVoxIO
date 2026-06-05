@@ -48,9 +48,19 @@ class ArrayWriter(BaseWriter):
         self.chunks=[self.size, self.xyzi, self.rgba]
     
     def mapping(self):
-        safepalette = np.array([UNSET, *self.rgba.palette_arr[:-1]], dtype=np.uint8)
+        palette_arr = np.asarray(self.rgba.palette_arr, dtype=np.uint8)
+        # Parsed RGBA chunks contain the 255 usable palette colors for color
+        # indexes 1..255. PNG palettes may provide a 256th sentinel color, so
+        # keep at most the first 255 colors and prepend color index 0 as empty.
+        safepalette = np.vstack([np.asarray(UNSET, dtype=np.uint8), palette_arr[:255]])
         bytepallet = np.frombuffer(safepalette.tobytes(), dtype=np.uint32)
-        d = {v: k for (k, v) in enumerate(bytepallet.tolist())}
+        d = {}
+        for k, v in enumerate(bytepallet.tolist()):
+            d.setdefault(v, k)
+
+        transparent = np.asarray(UNSET, dtype=np.uint8)
+        transparent_byte = np.frombuffer(transparent.tobytes(), dtype=np.uint32)[0]
+        d[transparent_byte] = 0
 
         flatvox = self.vox.reshape(-1, self.vox.shape[-1])
         flatbytes = np.frombuffer(flatvox.tobytes(), dtype=np.uint32)
